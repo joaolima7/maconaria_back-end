@@ -37,15 +37,6 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (sql.Res
 	)
 }
 
-const deleteUser = `-- name: DeleteUser :exec
-DELETE FROM users WHERE id = $1
-`
-
-func (q *Queries) DeleteUser(ctx context.Context, id uuid.UUID) error {
-	_, err := q.db.ExecContext(ctx, deleteUser, id)
-	return err
-}
-
 const getAllUsers = `-- name: GetAllUsers :many
 SELECT id, name, email, password, is_active, is_admin FROM users
 `
@@ -140,7 +131,7 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (sql.Res
 	)
 }
 
-const updateUserPassword = `-- name: UpdateUserPassword :execresult
+const updateUserPassword = `-- name: UpdateUserPassword :exec
 UPDATE users
 SET password = $1
 WHERE id = $2
@@ -151,6 +142,7 @@ type UpdateUserPasswordParams struct {
 	ID       uuid.UUID
 }
 
-func (q *Queries) UpdateUserPassword(ctx context.Context, arg UpdateUserPasswordParams) (sql.Result, error) {
-	return q.db.ExecContext(ctx, updateUserPassword, arg.Password, arg.ID)
+func (q *Queries) UpdateUserPassword(ctx context.Context, arg UpdateUserPasswordParams) error {
+	_, err := q.db.ExecContext(ctx, updateUserPassword, arg.Password, arg.ID)
+	return err
 }

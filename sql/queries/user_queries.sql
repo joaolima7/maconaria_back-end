@@ -16,11 +16,8 @@ UPDATE users
 SET name = $1, email = $2, is_active = $3, is_admin = $4
 WHERE id = $5;
 
--- name: UpdateUserPassword :execresult
+-- name: UpdateUserPassword :exec
 UPDATE users
 SET password = $1
 WHERE id = $2;
-
--- name: DeleteUser :exec
-DELETE FROM users WHERE id = $1;
 
