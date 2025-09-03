@@ -3,6 +3,8 @@ package entity
 import (
 	"errors"
 	"regexp"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 type User struct {
@@ -39,6 +41,13 @@ func NewUser(id string, name string, email string, password string, isActive boo
 	if err != nil {
 		return nil, err
 	}
+
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return nil, errors.New("falha na criptografia de senha")
+	}
+
+	user.Password = string(hash)
 
 	return user, nil
 }
