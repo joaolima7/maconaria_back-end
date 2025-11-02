@@ -8,49 +8,61 @@ package db
 import (
 	"context"
 	"database/sql"
-	"time"
-
-	"github.com/google/uuid"
 )
 
 const createPost = `-- name: CreatePost :execresult
-INSERT INTO posts(id, title, description, date, image, user_id, post_type)
-VALUES($1, $2, $3, $4, $5, $6, $7)
+INSERT INTO posts (
+  id, title, category, small_description, complete_description,
+  date, time, location, is_featured, post_type, user_id
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `
 
 type CreatePostParams struct {
-	ID          uuid.UUID
-	Title       string
-	Description sql.NullString
-	Date        time.Time
-	Image       sql.NullString
-	UserID      uuid.UUID
-	PostType    interface{}
+	ID                  string
+	Title               string
+	Category            string
+	SmallDescription    string
+	CompleteDescription string
+	Date                sql.NullString
+	Time                sql.NullString
+	Location            sql.NullString
+	IsFeatured          bool
+	PostType            PostsPostType
+	UserID              string
 }
 
 func (q *Queries) CreatePost(ctx context.Context, arg CreatePostParams) (sql.Result, error) {
 	return q.db.ExecContext(ctx, createPost,
 		arg.ID,
 		arg.Title,
-		arg.Description,
+		arg.Category,
+		arg.SmallDescription,
+		arg.CompleteDescription,
 		arg.Date,
-		arg.Image,
-		arg.UserID,
+		arg.Time,
+		arg.Location,
+		arg.IsFeatured,
 		arg.PostType,
+		arg.UserID,
 	)
 }
 
 const deletePost = `-- name: DeletePost :exec
-DELETE FROM posts WHERE id = $1
+DELETE FROM posts WHERE id = ?
 `
 
-func (q *Queries) DeletePost(ctx context.Context, id uuid.UUID) error {
+func (q *Queries) DeletePost(ctx context.Context, id string) error {
 	_, err := q.db.ExecContext(ctx, deletePost, id)
 	return err
 }
 
 const getAllPosts = `-- name: GetAllPosts :many
-SELECT id, title, description, date, image, user_id, post_type FROM posts ORDER BY date DESC
+SELECT
+  id, title, category, small_description, complete_description,
+  date, time, location, is_featured, post_type, user_id,
+  created_at, updated_at
+FROM posts
+ORDER BY created_at DESC
 `
 
 func (q *Queries) GetAllPosts(ctx context.Context) ([]Post, error) {
@@ -65,11 +77,17 @@ func (q *Queries) GetAllPosts(ctx context.Context) ([]Post, error) {
 		if err := rows.Scan(
 			&i.ID,
 			&i.Title,
-			&i.Description,
+			&i.Category,
+			&i.SmallDescription,
+			&i.CompleteDescription,
 			&i.Date,
-			&i.Image,
-			&i.UserID,
+			&i.Time,
+			&i.Location,
+			&i.IsFeatured,
 			&i.PostType,
+			&i.UserID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -85,10 +103,16 @@ func (q *Queries) GetAllPosts(ctx context.Context) ([]Post, error) {
 }
 
 const getAllPostsByUserID = `-- name: GetAllPostsByUserID :many
-SELECT id, title, description, date, image, user_id, post_type FROM posts WHERE user_id = $1 ORDER BY date DESC
+SELECT
+  id, title, category, small_description, complete_description,
+  date, time, location, is_featured, post_type, user_id,
+  created_at, updated_at
+FROM posts
+WHERE user_id = ?
+ORDER BY created_at DESC
 `
 
-func (q *Queries) GetAllPostsByUserID(ctx context.Context, userID uuid.UUID) ([]Post, error) {
+func (q *Queries) GetAllPostsByUserID(ctx context.Context, userID string) ([]Post, error) {
 	rows, err := q.db.QueryContext(ctx, getAllPostsByUserID, userID)
 	if err != nil {
 		return nil, err
@@ -100,11 +124,64 @@ func (q *Queries) GetAllPostsByUserID(ctx context.Context, userID uuid.UUID) ([]
 		if err := rows.Scan(
 			&i.ID,
 			&i.Title,
-			&i.Description,
+			&i.Category,
+			&i.SmallDescription,
+			&i.CompleteDescription,
 			&i.Date,
-			&i.Image,
-			&i.UserID,
+			&i.Time,
+			&i.Location,
+			&i.IsFeatured,
 			&i.PostType,
+			&i.UserID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getFeaturedPosts = `-- name: GetFeaturedPosts :many
+SELECT
+  id, title, category, small_description, complete_description,
+  date, time, location, is_featured, post_type, user_id,
+  created_at, updated_at
+FROM posts
+WHERE is_featured = 1
+ORDER BY created_at DESC
+`
+
+func (q *Queries) GetFeaturedPosts(ctx context.Context) ([]Post, error) {
+	rows, err := q.db.QueryContext(ctx, getFeaturedPosts)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Post
+	for rows.Next() {
+		var i Post
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.Category,
+			&i.SmallDescription,
+			&i.CompleteDescription,
+			&i.Date,
+			&i.Time,
+			&i.Location,
+			&i.IsFeatured,
+			&i.PostType,
+			&i.UserID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -120,45 +197,114 @@ func (q *Queries) GetAllPostsByUserID(ctx context.Context, userID uuid.UUID) ([]
 }
 
 const getPostByID = `-- name: GetPostByID :one
-SELECT id, title, description, date, image, user_id, post_type FROM posts WHERE id = $1
+SELECT
+  id, title, category, small_description, complete_description,
+  date, time, location, is_featured, post_type, user_id,
+  created_at, updated_at
+FROM posts
+WHERE id = ?
 `
 
-func (q *Queries) GetPostByID(ctx context.Context, id uuid.UUID) (Post, error) {
+func (q *Queries) GetPostByID(ctx context.Context, id string) (Post, error) {
 	row := q.db.QueryRowContext(ctx, getPostByID, id)
 	var i Post
 	err := row.Scan(
 		&i.ID,
 		&i.Title,
-		&i.Description,
+		&i.Category,
+		&i.SmallDescription,
+		&i.CompleteDescription,
 		&i.Date,
-		&i.Image,
-		&i.UserID,
+		&i.Time,
+		&i.Location,
+		&i.IsFeatured,
 		&i.PostType,
+		&i.UserID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
 
+const getPostsByType = `-- name: GetPostsByType :many
+SELECT
+  id, title, category, small_description, complete_description,
+  date, time, location, is_featured, post_type, user_id,
+  created_at, updated_at
+FROM posts
+WHERE post_type = ?
+ORDER BY created_at DESC
+`
+
+func (q *Queries) GetPostsByType(ctx context.Context, postType PostsPostType) ([]Post, error) {
+	rows, err := q.db.QueryContext(ctx, getPostsByType, postType)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Post
+	for rows.Next() {
+		var i Post
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.Category,
+			&i.SmallDescription,
+			&i.CompleteDescription,
+			&i.Date,
+			&i.Time,
+			&i.Location,
+			&i.IsFeatured,
+			&i.PostType,
+			&i.UserID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const updatePost = `-- name: UpdatePost :execresult
 UPDATE posts
-SET title = $1, description = $2, date = $3, image = $4, post_type = $5
-WHERE id = $6
+SET
+  title = ?, category = ?, small_description = ?, complete_description = ?,
+  date = ?, time = ?, location = ?, is_featured = ?, post_type = ?,
+  updated_at = CURRENT_TIMESTAMP
+WHERE id = ?
 `
 
 type UpdatePostParams struct {
-	Title       string
-	Description sql.NullString
-	Date        time.Time
-	Image       sql.NullString
-	PostType    interface{}
-	ID          uuid.UUID
+	Title               string
+	Category            string
+	SmallDescription    string
+	CompleteDescription string
+	Date                sql.NullString
+	Time                sql.NullString
+	Location            sql.NullString
+	IsFeatured          bool
+	PostType            PostsPostType
+	ID                  string
 }
 
 func (q *Queries) UpdatePost(ctx context.Context, arg UpdatePostParams) (sql.Result, error) {
 	return q.db.ExecContext(ctx, updatePost,
 		arg.Title,
-		arg.Description,
+		arg.Category,
+		arg.SmallDescription,
+		arg.CompleteDescription,
 		arg.Date,
-		arg.Image,
+		arg.Time,
+		arg.Location,
+		arg.IsFeatured,
 		arg.PostType,
 		arg.ID,
 	)

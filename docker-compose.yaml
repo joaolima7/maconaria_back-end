@@ -1,8 +1,14 @@
-version: '3'
+version: "3"
 services:
-  postgres:
-    image: postgres:15
+  mysql:
+    image: mysql:8.0
     env_file:
       - ./config/.env
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
     ports:
-      - "${DB_PORT:-5432}:5432"
+      - "${DB_PORT:-3306}:3306"
+    command: --default-authentication-plugin=mysql_native_password

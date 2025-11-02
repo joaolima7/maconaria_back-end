@@ -3,28 +3,33 @@ package entity
 import (
 	"errors"
 	"regexp"
+	"time"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
 type User struct {
-	ID       string
-	Name     string
-	Email    string
-	Password string
-	IsActive bool
-	IsAdmin  bool
-	Posts    []*Post
+	ID        string
+	Name      string
+	Email     string
+	Password  string
+	IsActive  bool
+	IsAdmin   bool
+	Posts     []*Post
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
 func NewUser(id string, name string, email string, password string, isActive bool, isAdmin bool) (*User, error) {
 	user := &User{
-		ID:       id,
-		Name:     name,
-		Email:    email,
-		Password: password,
-		IsActive: isActive,
-		IsAdmin:  isAdmin,
+		ID:        id,
+		Name:      name,
+		Email:     email,
+		Password:  password,
+		IsActive:  isActive,
+		IsAdmin:   isAdmin,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
 	}
 
 	err := user.validatePassword()
@@ -56,7 +61,6 @@ func (u *User) validatePassword() error {
 	if len(u.Password) < 8 {
 		return errors.New("a senha deve conter ao menos 8 caracteres")
 	}
-
 	return nil
 }
 
@@ -69,7 +73,6 @@ func (u *User) validateEmail() error {
 	if !emailRegex.MatchString(u.Email) {
 		return errors.New("email inválido")
 	}
-
 	return nil
 }
 
@@ -77,6 +80,5 @@ func (u *User) validateName() error {
 	if len(u.Name) == 0 {
 		return errors.New("o nome não pode ser vazio")
 	}
-
 	return nil
 }

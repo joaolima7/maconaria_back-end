@@ -6,26 +6,84 @@ package db
 
 import (
 	"database/sql"
-	"time"
-
-	"github.com/google/uuid"
+	"database/sql/driver"
+	"fmt"
 )
 
+type PostsPostType string
+
+const (
+	PostsPostTypeEvent         PostsPostType = "event"
+	PostsPostTypeCommemoration PostsPostType = "commemoration"
+	PostsPostTypeArticle       PostsPostType = "article"
+	PostsPostTypeNews          PostsPostType = "news"
+)
+
+func (e *PostsPostType) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = PostsPostType(s)
+	case string:
+		*e = PostsPostType(s)
+	default:
+		return fmt.Errorf("unsupported scan type for PostsPostType: %T", src)
+	}
+	return nil
+}
+
+type NullPostsPostType struct {
+	PostsPostType PostsPostType
+	Valid         bool // Valid is true if PostsPostType is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullPostsPostType) Scan(value interface{}) error {
+	if value == nil {
+		ns.PostsPostType, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.PostsPostType.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullPostsPostType) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.PostsPostType), nil
+}
+
 type Post struct {
-	ID          uuid.UUID
-	Title       string
-	Description sql.NullString
-	Date        time.Time
-	Image       sql.NullString
-	UserID      uuid.UUID
-	PostType    interface{}
+	ID                  string
+	Title               string
+	Category            string
+	SmallDescription    string
+	CompleteDescription string
+	Date                sql.NullString
+	Time                sql.NullString
+	Location            sql.NullString
+	IsFeatured          bool
+	PostType            PostsPostType
+	UserID              string
+	CreatedAt           sql.NullTime
+	UpdatedAt           sql.NullTime
+}
+
+type PostImage struct {
+	ID        string
+	PostID    string
+	ImageData []byte
+	CreatedAt sql.NullTime
 }
 
 type User struct {
-	ID       uuid.UUID
-	Name     string
-	Email    string
-	Password string
-	IsActive bool
-	IsAdmin  bool
+	ID        string
+	Name      string
+	Email     string
+	Password  string
+	IsActive  bool
+	IsAdmin   bool
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
 }

@@ -8,17 +8,15 @@ package db
 import (
 	"context"
 	"database/sql"
-
-	"github.com/google/uuid"
 )
 
 const createUser = `-- name: CreateUser :execresult
 INSERT INTO users (id, name, email, password, is_active, is_admin)
-VALUES($1, $2, $3, $4, $5, $6)
+VALUES(?, ?, ?, ?, ?, ?)
 `
 
 type CreateUserParams struct {
-	ID       uuid.UUID
+	ID       string
 	Name     string
 	Email    string
 	Password string
@@ -37,8 +35,17 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (sql.Res
 	)
 }
 
+const deleteUser = `-- name: DeleteUser :exec
+DELETE FROM users WHERE id = ?
+`
+
+func (q *Queries) DeleteUser(ctx context.Context, id string) error {
+	_, err := q.db.ExecContext(ctx, deleteUser, id)
+	return err
+}
+
 const getAllUsers = `-- name: GetAllUsers :many
-SELECT id, name, email, password, is_active, is_admin FROM users
+SELECT id, name, email, password, is_active, is_admin, created_at, updated_at FROM users
 `
 
 func (q *Queries) GetAllUsers(ctx context.Context) ([]User, error) {
@@ -57,6 +64,8 @@ func (q *Queries) GetAllUsers(ctx context.Context) ([]User, error) {
 			&i.Password,
 			&i.IsActive,
 			&i.IsAdmin,
+			&i.CreatedAt,
+			&i.UpdatedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -72,7 +81,7 @@ func (q *Queries) GetAllUsers(ctx context.Context) ([]User, error) {
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, name, email, password, is_active, is_admin FROM users WHERE email = $1
+SELECT id, name, email, password, is_active, is_admin, created_at, updated_at FROM users WHERE email = ?
 `
 
 func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error) {
@@ -85,15 +94,17 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 		&i.Password,
 		&i.IsActive,
 		&i.IsAdmin,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
 
 const getUserByID = `-- name: GetUserByID :one
-SELECT id, name, email, password, is_active, is_admin FROM users WHERE id = $1
+SELECT id, name, email, password, is_active, is_admin, created_at, updated_at FROM users WHERE id = ?
 `
 
-func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
+func (q *Queries) GetUserByID(ctx context.Context, id string) (User, error) {
 	row := q.db.QueryRowContext(ctx, getUserByID, id)
 	var i User
 	err := row.Scan(
@@ -103,14 +114,16 @@ func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
 		&i.Password,
 		&i.IsActive,
 		&i.IsAdmin,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
 
 const updateUser = `-- name: UpdateUser :execresult
 UPDATE users
-SET name = $1, email = $2, is_active = $3, is_admin = $4
-WHERE id = $5
+SET name = ?, email = ?, is_active = ?, is_admin = ?
+WHERE id = ?
 `
 
 type UpdateUserParams struct {
@@ -118,7 +131,7 @@ type UpdateUserParams struct {
 	Email    string
 	IsActive bool
 	IsAdmin  bool
-	ID       uuid.UUID
+	ID       string
 }
 
 func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (sql.Result, error) {
@@ -133,13 +146,13 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (sql.Res
 
 const updateUserPassword = `-- name: UpdateUserPassword :exec
 UPDATE users
-SET password = $1
-WHERE id = $2
+SET password = ?
+WHERE id = ?
 `
 
 type UpdateUserPasswordParams struct {
 	Password string
-	ID       uuid.UUID
+	ID       string
 }
 
 func (q *Queries) UpdateUserPassword(ctx context.Context, arg UpdateUserPasswordParams) error {

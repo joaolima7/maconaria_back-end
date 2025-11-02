@@ -1,21 +1,59 @@
 -- name: CreatePost :execresult
-INSERT INTO posts(id, title, description, date, image, user_id, post_type)
-VALUES($1, $2, $3, $4, $5, $6, $7);
+INSERT INTO posts (
+  id, title, category, small_description, complete_description,
+  date, time, location, is_featured, post_type, user_id
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 -- name: GetPostByID :one
-SELECT * FROM posts WHERE id = $1;
+SELECT
+  id, title, category, small_description, complete_description,
+  date, time, location, is_featured, post_type, user_id,
+  created_at, updated_at
+FROM posts
+WHERE id = ?;
 
 -- name: GetAllPosts :many
-SELECT * FROM posts ORDER BY date DESC;
+SELECT
+  id, title, category, small_description, complete_description,
+  date, time, location, is_featured, post_type, user_id,
+  created_at, updated_at
+FROM posts
+ORDER BY created_at DESC;
+
+-- name: GetFeaturedPosts :many
+SELECT
+  id, title, category, small_description, complete_description,
+  date, time, location, is_featured, post_type, user_id,
+  created_at, updated_at
+FROM posts
+WHERE is_featured = 1
+ORDER BY created_at DESC;
+
+-- name: GetPostsByType :many
+SELECT
+  id, title, category, small_description, complete_description,
+  date, time, location, is_featured, post_type, user_id,
+  created_at, updated_at
+FROM posts
+WHERE post_type = ?
+ORDER BY created_at DESC;
 
 -- name: UpdatePost :execresult
 UPDATE posts
-SET title = $1, description = $2, date = $3, image = $4, post_type = $5
-WHERE id = $6;
+SET
+  title = ?, category = ?, small_description = ?, complete_description = ?,
+  date = ?, time = ?, location = ?, is_featured = ?, post_type = ?,
+  updated_at = CURRENT_TIMESTAMP
+WHERE id = ?;
 
 -- name: DeletePost :exec
-DELETE FROM posts WHERE id = $1;
+DELETE FROM posts WHERE id = ?;
 
 -- name: GetAllPostsByUserID :many
-SELECT * FROM posts WHERE user_id = $1 ORDER BY date DESC;
-
+SELECT
+  id, title, category, small_description, complete_description,
+  date, time, location, is_featured, post_type, user_id,
+  created_at, updated_at
+FROM posts
+WHERE user_id = ?
+ORDER BY created_at DESC;

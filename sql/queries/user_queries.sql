@@ -1,23 +1,25 @@
 -- name: CreateUser :execresult
 INSERT INTO users (id, name, email, password, is_active, is_admin)
-VALUES($1, $2, $3, $4, $5, $6);
+VALUES(?, ?, ?, ?, ?, ?);
 
 -- name: GetAllUsers :many
 SELECT * FROM users;
 
 -- name: GetUserByID :one
-SELECT * FROM users WHERE id = $1;
+SELECT * FROM users WHERE id = ?;
 
 -- name: GetUserByEmail :one
-SELECT * FROM users WHERE email = $1;
+SELECT * FROM users WHERE email = ?;
 
 -- name: UpdateUser :execresult
 UPDATE users
-SET name = $1, email = $2, is_active = $3, is_admin = $4
-WHERE id = $5;
+SET name = ?, email = ?, is_active = ?, is_admin = ?
+WHERE id = ?;
 
 -- name: UpdateUserPassword :exec
 UPDATE users
-SET password = $1
-WHERE id = $2;
+SET password = ?
+WHERE id = ?;
 
+-- name: DeleteUser :exec
+DELETE FROM users WHERE id = ?;

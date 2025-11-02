@@ -6,19 +6,18 @@ endif
 DB_USER     ?= root
 DB_PASSWORD ?= root
 DB_NAME     ?= maconaria_db
-DB_HOST     ?= localhost
-DB_PORT     ?= 5432
-DB_SSLMODE  ?= disable
+DB_HOST     ?= 127.0.0.1
+DB_PORT     ?= 3306
 
-MIGRATE_URL ?= postgres://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?sslmode=$(DB_SSLMODE)
+MIGRATE_URL ?= mysql://$(DB_USER):$(DB_PASSWORD)@tcp($(DB_HOST):$(DB_PORT))/$(DB_NAME)
 
 createMigration:
-	migrate create -ext=sql -dir=sql/migrations -seq $(MIGRATION_NAME)
+    migrate create -ext=sql -dir=sql/migrations -seq $(MIGRATION_NAME)
 
 migrateUp:
-	migrate -path sql/migrations -database "$(MIGRATE_URL)" up
+    migrate -path sql/migrations -database "$(MIGRATE_URL)" up
 
 migrateDown:
-	migrate -path sql/migrations -database "$(MIGRATE_URL)" down
+    migrate -path sql/migrations -database "$(MIGRATE_URL)" down
 
 .PHONY: createMigration migrateUp migrateDown

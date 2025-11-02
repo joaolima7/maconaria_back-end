@@ -1,2 +1,2 @@
+DROP TABLE IF EXISTS post_images;
 DROP TABLE IF EXISTS posts;
-DROP TYPE IF EXISTS post_type;
