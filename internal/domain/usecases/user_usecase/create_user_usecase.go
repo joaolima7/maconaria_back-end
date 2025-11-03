@@ -3,7 +3,7 @@ package user_usecase
 import (
 	"github.com/google/uuid"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/entity"
-	"github.com/joaolima7/maconaria_back-end/internal/domain/repositories/user_repository"
+	"github.com/joaolima7/maconaria_back-end/internal/domain/repositories/user"
 )
 
 type CreateUserInputDTO struct {
@@ -23,10 +23,10 @@ type CreateUserOutputDTO struct {
 }
 
 type CreateUserUseCase struct {
-	Repository user_repository.CreateUserRepository
+	Repository user.CreateUserRepository
 }
 
-func NewCreateUserUseCase(repository user_repository.CreateUserRepository) *CreateUserUseCase {
+func NewCreateUserUseCase(repository user.CreateUserRepository) *CreateUserUseCase {
 	return &CreateUserUseCase{
 		Repository: repository,
 	}

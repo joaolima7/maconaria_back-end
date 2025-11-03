@@ -10,3 +10,7 @@ sql:
         overrides:
           - db_type: "decimal"
             go_type: "float64"
+          - db_type: "timestamp"
+            go_type: "time.Time"
+          - db_type: "datetime"
+            go_type: "time.Time"

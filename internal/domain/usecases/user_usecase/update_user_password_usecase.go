@@ -1,22 +1,35 @@
 package user_usecase
 
-import "github.com/joaolima7/maconaria_back-end/internal/domain/repositories/user_repository"
+import (
+	"github.com/joaolima7/maconaria_back-end/internal/domain/entity"
+	"github.com/joaolima7/maconaria_back-end/internal/domain/repositories/user"
+)
 
 type UpdateUserPasswordInputDTO struct {
 	ID          string `json:"id"`
-	NewPassword string `json:"new_password"`
+	NewPassword string `json:"new_password" validate:"required,min=8"`
 }
 
 type UpdateUserPasswordUseCase struct {
-	Repository user_repository.UpdateUserPasswordRepository
+	Repository user.UpdateUserPasswordRepository
 }
 
-func NewUpdateUserPasswordUseCase(repository user_repository.UpdateUserPasswordRepository) *UpdateUserPasswordUseCase {
+func NewUpdateUserPasswordUseCase(repository user.UpdateUserPasswordRepository) *UpdateUserPasswordUseCase {
 	return &UpdateUserPasswordUseCase{
 		Repository: repository,
 	}
 }
 
 func (uc *UpdateUserPasswordUseCase) Execute(input UpdateUserPasswordInputDTO) error {
-	return uc.Repository.UpdateUserPassword(input.ID, input.NewPassword)
+
+	tempUser := &entity.User{}
+	if err := tempUser.ValidatePassword(input.NewPassword); err != nil {
+		return err
+	}
+
+	if err := tempUser.HashPassword(input.NewPassword); err != nil {
+		return err
+	}
+
+	return uc.Repository.UpdateUserPassword(input.ID, tempUser.Password)
 }

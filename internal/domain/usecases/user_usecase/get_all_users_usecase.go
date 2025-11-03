@@ -1,6 +1,6 @@
 package user_usecase
 
-import "github.com/joaolima7/maconaria_back-end/internal/domain/repositories/user_repository"
+import "github.com/joaolima7/maconaria_back-end/internal/domain/repositories/user"
 
 type GetAllUsersOutputDTO struct {
 	ID       string `json:"id"`
@@ -11,10 +11,10 @@ type GetAllUsersOutputDTO struct {
 }
 
 type GetAllUsersUseCase struct {
-	Repository user_repository.GetAllUsersRepository
+	Repository user.GetAllUsersRepository
 }
 
-func NewGetAllUsersUseCase(repository user_repository.GetAllUsersRepository) *GetAllUsersUseCase {
+func NewGetAllUsersUseCase(repository user.GetAllUsersRepository) *GetAllUsersUseCase {
 	return &GetAllUsersUseCase{
 		Repository: repository,
 	}
