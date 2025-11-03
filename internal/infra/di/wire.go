@@ -5,12 +5,16 @@
 package di
 
 import (
+	"github.com/go-chi/chi/v5"
 	"github.com/google/wire"
 	"github.com/joaolima7/maconaria_back-end/config"
 	userdata "github.com/joaolima7/maconaria_back-end/internal/data/repositories/user"
 	userdomain "github.com/joaolima7/maconaria_back-end/internal/domain/repositories/user"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/usecases/user_usecase"
 	"github.com/joaolima7/maconaria_back-end/internal/infra/database"
+	"github.com/joaolima7/maconaria_back-end/internal/infra/web/handlers"
+	"github.com/joaolima7/maconaria_back-end/internal/infra/web/routes"
+	"github.com/joaolima7/maconaria_back-end/internal/infra/web/server"
 )
 
 // UserRepositorySet agrupa todos os providers de repositórios de user
@@ -42,21 +46,32 @@ var InfraSet = wire.NewSet(
 	database.ProvideQueries,
 )
 
-// UserUseCases agrupa todos os use cases em uma struct
-type UserUseCases struct {
-	CreateUser         *user_usecase.CreateUserUseCase
-	GetAllUsers        *user_usecase.GetAllUsersUseCase
-	UpdateUserById     *user_usecase.UpdateUserByIdUseCase
-	UpdateUserPassword *user_usecase.UpdateUserPasswordUseCase
+// WebSet agrupa providers da camada web
+var WebSet = wire.NewSet(
+	handlers.NewUserHandler,
+	routes.NewRouter,
+	provideChiRouter,
+	provideServer,
+)
+
+// provideChiRouter configura o router Chi
+func provideChiRouter(router *routes.Router) *chi.Mux {
+	return router.Setup()
 }
 
-// InitializeUserUseCases injeta todas as dependências dos use cases de user
-func InitializeUserUseCases(cfg *config.Config) (*UserUseCases, func(), error) {
+// provideServer cria instância do servidor
+func provideServer(router *chi.Mux, cfg *config.Config) *server.Server {
+	port := "8080" // pode adicionar no .env depois
+	return server.NewServer(router, port)
+}
+
+// InitializeServer injeta todas as dependências e retorna o servidor configurado
+func InitializeServer(cfg *config.Config) (*server.Server, func(), error) {
 	wire.Build(
 		InfraSet,
 		UserRepositorySet,
 		UserUseCaseSet,
-		wire.Struct(new(UserUseCases), "*"),
+		WebSet,
 	)
 	return nil, nil, nil
 }

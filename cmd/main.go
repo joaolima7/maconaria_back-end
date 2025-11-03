@@ -14,16 +14,20 @@ func main() {
 		log.Fatalf("❌ Erro ao carregar configurações: %v", err)
 	}
 
-	log.Println("✅ Configurações carregadas com sucesso")
+	log.Println("✅ Configurações carregadas")
 
-	// 2. Wire injeta TODAS as dependências automaticamente
-	_, cleanup, err := di.InitializeUserUseCases(cfg)
+	// 2. Wire injeta TODAS as dependências (DB + UseCases + Handlers + Server)
+	server, cleanup, err := di.InitializeServer(cfg)
 	if err != nil {
-		log.Fatalf("❌ Erro ao inicializar dependências: %v", err)
+		log.Fatalf("❌ Erro ao inicializar servidor: %v", err)
 	}
 	defer cleanup()
 
 	log.Println("✅ Banco de dados conectado")
 	log.Println("✅ Dependências injetadas")
 
+	// 3. Inicia o servidor HTTP
+	if err := server.Start(); err != nil {
+		log.Fatalf("❌ Erro no servidor: %v", err)
+	}
 }
