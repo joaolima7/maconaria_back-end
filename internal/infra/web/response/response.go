@@ -2,43 +2,54 @@ package response
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
+
+	"github.com/joaolima7/maconaria_back-end/internal/domain/apperrors"
 )
 
 type Response struct {
 	Success bool        `json:"success"`
 	Message string      `json:"message"`
 	Data    interface{} `json:"data,omitempty"`
-	Error   string      `json:"error,omitempty"`
+	Error   *ErrorInfo  `json:"error,omitempty"`
+}
+
+type ErrorInfo struct {
+	Code   string `json:"code"`
+	Detail string `json:"detail,omitempty"`
 }
 
 func Success(w http.ResponseWriter, statusCode int, message string, data interface{}) {
-	w.Header().Set("Content-Type", "application-json")
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
 
-	response := Response{
+	json.NewEncoder(w).Encode(Response{
 		Success: true,
 		Message: message,
 		Data:    data,
-	}
-
-	json.NewEncoder(w).Encode(response)
+	})
 }
 
-func Error(w http.ResponseWriter, statusCode int, message string, err error) {
-	w.Header().Set("Content-Type", "application-json")
-	w.WriteHeader(statusCode)
+func Error(w http.ResponseWriter, err error) {
+	w.Header().Set("Content-Type", "application/json")
 
-	response := Response{
+	var appErr *apperrors.AppError
+	if !errors.As(err, &appErr) {
+
+		appErr = apperrors.NewInternalError("Erro inesperado", err)
+	}
+
+	w.WriteHeader(appErr.StatusCode)
+
+	json.NewEncoder(w).Encode(Response{
 		Success: false,
-		Message: message,
-	}
-
-	if err != nil {
-		response.Error = err.Error()
-	}
-
-	json.NewEncoder(w).Encode(response)
+		Message: appErr.Message,
+		Error: &ErrorInfo{
+			Code:   appErr.Code,
+			Detail: appErr.Detail,
+		},
+	})
 }
 
 func Created(w http.ResponseWriter, message string, data interface{}) {
@@ -47,24 +58,4 @@ func Created(w http.ResponseWriter, message string, data interface{}) {
 
 func OK(w http.ResponseWriter, message string, data interface{}) {
 	Success(w, http.StatusOK, message, data)
-}
-
-func BadRequest(w http.ResponseWriter, message string, err error) {
-	Error(w, http.StatusBadRequest, message, err)
-}
-
-func NotFound(w http.ResponseWriter, message string, err error) {
-	Error(w, http.StatusNotFound, message, err)
-}
-
-func InternalServerError(w http.ResponseWriter, message string, err error) {
-	Error(w, http.StatusInternalServerError, message, err)
-}
-
-func Unauthorized(w http.ResponseWriter, message string, err error) {
-	Error(w, http.StatusUnauthorized, message, err)
-}
-
-func Forbidden(w http.ResponseWriter, message string, err error) {
-	Error(w, http.StatusForbidden, message, err)
 }

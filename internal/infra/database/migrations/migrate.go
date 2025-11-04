@@ -23,7 +23,6 @@ func NewMigrationService(db *sql.DB, migrationsPath string) *MigrationService {
 	}
 }
 
-// getMigrate cria instância do migrate
 func (m *MigrationService) getMigrate() (*migrate.Migrate, error) {
 	driver, err := mysql.WithInstance(m.db, &mysql.Config{})
 	if err != nil {
@@ -42,7 +41,6 @@ func (m *MigrationService) getMigrate() (*migrate.Migrate, error) {
 	return migration, nil
 }
 
-// Up executa todas as migrations pendentes
 func (m *MigrationService) Up() error {
 	migration, err := m.getMigrate()
 	if err != nil {
@@ -68,7 +66,6 @@ func (m *MigrationService) Up() error {
 	return nil
 }
 
-// Down reverte a última migration
 func (m *MigrationService) Down() error {
 	migration, err := m.getMigrate()
 	if err != nil {
@@ -94,7 +91,6 @@ func (m *MigrationService) Down() error {
 	return nil
 }
 
-// DownAll reverte todas as migrations
 func (m *MigrationService) DownAll() error {
 	migration, err := m.getMigrate()
 	if err != nil {
@@ -110,7 +106,6 @@ func (m *MigrationService) DownAll() error {
 	return nil
 }
 
-// Force força uma versão específica (útil para corrigir estado dirty)
 func (m *MigrationService) Force(version int) error {
 	migration, err := m.getMigrate()
 	if err != nil {
@@ -126,7 +121,6 @@ func (m *MigrationService) Force(version int) error {
 	return nil
 }
 
-// Version retorna a versão atual das migrations
 func (m *MigrationService) Version() error {
 	migration, err := m.getMigrate()
 	if err != nil {
@@ -152,7 +146,6 @@ func (m *MigrationService) Version() error {
 	return nil
 }
 
-// Migrate executa migrations até uma versão específica
 func (m *MigrationService) Migrate(targetVersion uint) error {
 	migration, err := m.getMigrate()
 	if err != nil {

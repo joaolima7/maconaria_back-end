@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/joaolima7/maconaria_back-end/internal/domain/apperrors"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/usecases/user_usecase"
 	"github.com/joaolima7/maconaria_back-end/internal/infra/web/response"
 )
@@ -45,13 +46,13 @@ func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	var input user_usecase.CreateUserInputDTO
 
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-		response.BadRequest(w, "Dados inválidos!", err)
+		response.Error(w, apperrors.NewValidationError("request", "Corpo da requisição inválido"))
 		return
 	}
 
 	output, err := h.CreateUserUseCase.Execute(input)
 	if err != nil {
-		response.InternalServerError(w, "Erro ao criar usuário!", err)
+		response.Error(w, err) // AppError vem direto do usecase
 		return
 	}
 
@@ -70,7 +71,7 @@ func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 func (h *UserHandler) GetAllUsers(w http.ResponseWriter, r *http.Request) {
 	output, err := h.GetAllUsersUseCase.Execute()
 	if err != nil {
-		response.InternalServerError(w, "Erro ao buscar usuários!", err)
+		response.Error(w, err)
 		return
 	}
 
@@ -94,7 +95,7 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	var input user_usecase.UpdateUserByIdInputDTO
 
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-		response.BadRequest(w, "Dados inválidos!", err)
+		response.Error(w, apperrors.NewValidationError("request", "Corpo da requisição inválido"))
 		return
 	}
 
@@ -102,7 +103,7 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 
 	output, err := h.UpdateUserByIdUseCase.Execute(input)
 	if err != nil {
-		response.InternalServerError(w, "Erro ao atualizar usuário!", err)
+		response.Error(w, err)
 		return
 	}
 
@@ -123,17 +124,17 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 // @Router /users/{id}/password [patch]
 func (h *UserHandler) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
 	userID := chi.URLParam(r, "id")
-
 	var input user_usecase.UpdateUserPasswordInputDTO
+
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-		response.BadRequest(w, "Dados inválidos!", err)
+		response.Error(w, apperrors.NewValidationError("request", "Corpo da requisição inválido"))
 		return
 	}
 
 	input.ID = userID
 
 	if err := h.UpdatePasswordUseCase.Execute(input); err != nil {
-		response.InternalServerError(w, "Falha ao atualizar senha do usuário!", err)
+		response.Error(w, err)
 		return
 	}
 

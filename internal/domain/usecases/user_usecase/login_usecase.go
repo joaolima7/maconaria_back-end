@@ -1,8 +1,7 @@
 package user_usecase
 
 import (
-	"errors"
-
+	"github.com/joaolima7/maconaria_back-end/internal/domain/apperrors"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/repositories/user"
 	"github.com/joaolima7/maconaria_back-end/internal/infra/web/auth"
 	"golang.org/x/crypto/bcrypt"
@@ -42,23 +41,22 @@ func NewLoginUseCase(
 }
 
 func (uc *LoginUseCase) Execute(input LoginInputDTO) (*LoginOutputDTO, error) {
-
 	user, err := uc.Repository.GetUserByEmail(input.Email)
 	if err != nil {
-		return nil, errors.New("credenciais inválidas")
+		return nil, apperrors.NewUnauthorizedError("E-mail ou senha incorretos")
 	}
 
 	if !user.IsActive {
-		return nil, errors.New("usuário inativo")
+		return nil, apperrors.NewForbiddenError("Usuário inativo. Entre em contato com o administrador")
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(input.Password)); err != nil {
-		return nil, errors.New("credenciais inválidas")
+		return nil, apperrors.NewUnauthorizedError("E-mail ou senha incorretos")
 	}
 
 	token, err := uc.JWTService.GenerateToken(user.ID, user.Email, user.IsAdmin)
 	if err != nil {
-		return nil, errors.New("erro ao gerar token")
+		return nil, apperrors.NewInternalError("Erro ao gerar token de autenticação", err)
 	}
 
 	return &LoginOutputDTO{

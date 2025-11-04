@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/joaolima7/maconaria_back-end/internal/domain/apperrors"
 	"github.com/joaolima7/maconaria_back-end/internal/infra/web/auth"
 	"github.com/joaolima7/maconaria_back-end/internal/infra/web/response"
 )
@@ -27,18 +28,22 @@ func (m *AuthMiddleware) Authenticate(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		authHeader := r.Header.Get("Authorization")
 		if authHeader == "" {
-			response.Unauthorized(w, "Token de autenticação não fornecido!", nil)
+			response.Error(w, apperrors.NewUnauthorizedError("Token de autenticação não fornecido"))
 			return
 		}
 
-		tokenString := strings.TrimPrefix(authHeader, "Bearer")
-		if tokenString == authHeader {
-			response.Unauthorized(w, "Formasto de Token inválido!", nil)
+		const bearerPrefix = "Bearer "
+		if !strings.HasPrefix(authHeader, bearerPrefix) {
+			response.Error(w, apperrors.NewUnauthorizedError("Formato de token inválido. Use: 'Authorization: Bearer <token>'"))
+			return
 		}
 
+		tokenString := strings.TrimSpace(authHeader[len(bearerPrefix):])
 		claims, err := m.jwtService.ValidateToken(tokenString)
 		if err != nil {
-			response.Unauthorized(w, "Token inválido ou expirado!", err)
+
+			response.Error(w, apperrors.NewUnauthorizedError("Token inválido ou expirado"))
+			return
 		}
 
 		ctx := context.WithValue(r.Context(), UserContextKey, claims)
@@ -50,12 +55,12 @@ func (m *AuthMiddleware) RequireAdmin(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		claims, ok := r.Context().Value(UserContextKey).(*auth.JWTClaims)
 		if !ok {
-			response.Unauthorized(w, "Token inválido!", nil)
+			response.Error(w, apperrors.NewUnauthorizedError("Token inválido"))
 			return
 		}
 
 		if !claims.IsAdmin {
-			response.Forbidden(w, "Acesso negado: permissões de administrador necessárias!", nil)
+			response.Error(w, apperrors.NewForbiddenError("Acesso negado: permissões de administrador necessárias"))
 			return
 		}
 

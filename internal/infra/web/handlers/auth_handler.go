@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/joaolima7/maconaria_back-end/internal/domain/apperrors"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/usecases/user_usecase"
 	"github.com/joaolima7/maconaria_back-end/internal/infra/web/response"
 )
@@ -33,13 +34,13 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	var input user_usecase.LoginInputDTO
 
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-		response.BadRequest(w, "Dados inválidos!", err)
+		response.Error(w, apperrors.NewValidationError("request", "Corpo da requisição inválido"))
 		return
 	}
 
 	output, err := h.LoginUseCase.Execute(input)
 	if err != nil {
-		response.Unauthorized(w, err.Error(), nil)
+		response.Error(w, err)
 		return
 	}
 

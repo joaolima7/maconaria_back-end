@@ -1,10 +1,10 @@
 package entity
 
 import (
-	"errors"
 	"regexp"
 	"time"
 
+	"github.com/joaolima7/maconaria_back-end/internal/domain/apperrors"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -44,7 +44,7 @@ func NewUser(id string, name string, email string, password string, isActive boo
 
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		return nil, errors.New("falha na criptografia de senha")
+		return nil, apperrors.NewInternalError("Falha ao criptografar senha!", err)
 	}
 	user.Password = string(hash)
 
@@ -53,34 +53,41 @@ func NewUser(id string, name string, email string, password string, isActive boo
 
 func (u *User) ValidatePassword(password string) error {
 	if len(password) < 8 {
-		return errors.New("a senha deve conter ao menos 8 caracteres")
+		return apperrors.NewValidationError("senha", "A senha deve conter no mínimo 8 caracteres!")
 	}
 	return nil
 }
 
 func (u *User) ValidateEmail() error {
 	if len(u.Email) == 0 {
-		return errors.New("o email não pode ser vazio")
+		return apperrors.NewValidationError("e-mail", "O e-mail não pode ser vazio!")
 	}
 
 	emailRegex := regexp.MustCompile(`^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$`)
 	if !emailRegex.MatchString(u.Email) {
-		return errors.New("email inválido")
+		return apperrors.NewValidationError("e-mail", "Formato de e-mail inválido!")
 	}
 	return nil
 }
 
 func (u *User) ValidateName() error {
 	if len(u.Name) == 0 {
-		return errors.New("o nome não pode ser vazio")
+		return apperrors.NewValidationError("nome", "O nome não pode ser vazio!")
+	}
+	if len(u.Name) < 3 {
+		return apperrors.NewValidationError("nome", "O nome deve ter no mínimo 3 caracteres!")
 	}
 	return nil
 }
 
 func (u *User) HashPassword(password string) error {
+	if err := u.ValidatePassword(password); err != nil {
+		return err
+	}
+
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		return errors.New("falha na criptografia de senha")
+		return apperrors.NewInternalError("Falha ao criptografar senha!", err)
 	}
 	u.Password = string(hash)
 	return nil

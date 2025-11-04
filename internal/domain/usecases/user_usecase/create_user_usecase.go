@@ -37,6 +37,7 @@ func NewCreateUserUseCase(repository user.CreateUserRepository) *CreateUserUseCa
 }
 
 func (uc *CreateUserUseCase) Execute(input CreateUserInputDTO) (*CreateUserOutputDTO, error) {
+
 	user, err := entity.NewUser(
 		uuid.New().String(),
 		input.Name,

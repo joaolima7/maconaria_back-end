@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 
+	"github.com/joaolima7/maconaria_back-end/internal/domain/apperrors"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/entity"
 	"github.com/joaolima7/maconaria_back-end/internal/infra/database/db"
 )
@@ -27,14 +28,19 @@ func (r *CreateUserRepositoryImpl) CreateUser(user *entity.User) (*entity.User, 
 		IsAdmin:  user.IsAdmin,
 	}
 
+	userExisting, _ := r.queries.GetUserByEmail(ctx, user.Email)
+	if userExisting.Email == user.Email {
+		return nil, apperrors.NewDuplicateError("e-mail", user.Email)
+	}
+
 	_, err := r.queries.CreateUser(ctx, params)
 	if err != nil {
-		return nil, err
+		return nil, apperrors.WrapDatabaseError(err, "criar usuário")
 	}
 
 	userDB, err := r.queries.GetUserByID(ctx, user.ID)
 	if err != nil {
-		return nil, err
+		return nil, apperrors.WrapDatabaseError(err, "buscar usuário criado")
 	}
 
 	return &entity.User{
