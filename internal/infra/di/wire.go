@@ -37,6 +37,9 @@ var UserRepositorySet = wire.NewSet(
 
 	userdata.NewUpdateUserPasswordRepositoryImpl,
 	wire.Bind(new(userdomain.UpdateUserPasswordRepository), new(*userdata.UpdateUserPasswordRepositoryImpl)),
+
+	userdata.NewGetUserByIdRepositoryImpl,
+	wire.Bind(new(userdomain.GetUserByIdRepository), new(*userdata.GetUserByIdRepositoryImpl)),
 )
 
 // UserUseCaseSet agrupa todos os use cases de user
@@ -45,6 +48,7 @@ var UserUseCaseSet = wire.NewSet(
 	user_usecase.NewGetAllUsersUseCase,
 	user_usecase.NewUpdateUserByIdUseCase,
 	user_usecase.NewUpdateUserPasswordUseCase,
+	user_usecase.NewGetUserByIdUseCase,
 	user_usecase.NewLoginUseCase,
 )
 

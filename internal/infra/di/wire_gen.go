@@ -38,7 +38,8 @@ func InitializeApp(cfg *config.Config) (*App, error) {
 	updateUserByIDRepositoryImpl := user.NewUpdateUserByIDRepositoryImpl(queries)
 	updateUserByIdUseCase := user_usecase.NewUpdateUserByIdUseCase(updateUserByIDRepositoryImpl)
 	updateUserPasswordRepositoryImpl := user.NewUpdateUserPasswordRepositoryImpl(queries)
-	updateUserPasswordUseCase := user_usecase.NewUpdateUserPasswordUseCase(updateUserPasswordRepositoryImpl)
+	getUserByIdRepositoryImpl := user.NewGetUserByIdRepositoryImpl(queries)
+	updateUserPasswordUseCase := user_usecase.NewUpdateUserPasswordUseCase(updateUserPasswordRepositoryImpl, getUserByIdRepositoryImpl)
 	userHandler := handlers.NewUserHandler(createUserUseCase, getAllUsersUseCase, updateUserByIdUseCase, updateUserPasswordUseCase)
 	getUserByEmailRepositoryImpl := user.NewGetUserByEmailRepositoryImpl(queries)
 	jwtService := provideJWTService(cfg)
@@ -58,10 +59,10 @@ func InitializeApp(cfg *config.Config) (*App, error) {
 // wire.go:
 
 // UserRepositorySet agrupa todos os providers de repositórios de user
-var UserRepositorySet = wire.NewSet(user.NewCreateUserRepositoryImpl, wire.Bind(new(user2.CreateUserRepository), new(*user.CreateUserRepositoryImpl)), user.NewGetAllUsersRepositoryImpl, wire.Bind(new(user2.GetAllUsersRepository), new(*user.GetAllUsersRepositoryImpl)), user.NewGetUserByEmailRepositoryImpl, wire.Bind(new(user2.GetUserByEmailRepository), new(*user.GetUserByEmailRepositoryImpl)), user.NewUpdateUserByIDRepositoryImpl, wire.Bind(new(user2.UpdateUserByIDRepository), new(*user.UpdateUserByIDRepositoryImpl)), user.NewUpdateUserPasswordRepositoryImpl, wire.Bind(new(user2.UpdateUserPasswordRepository), new(*user.UpdateUserPasswordRepositoryImpl)))
+var UserRepositorySet = wire.NewSet(user.NewCreateUserRepositoryImpl, wire.Bind(new(user2.CreateUserRepository), new(*user.CreateUserRepositoryImpl)), user.NewGetAllUsersRepositoryImpl, wire.Bind(new(user2.GetAllUsersRepository), new(*user.GetAllUsersRepositoryImpl)), user.NewGetUserByEmailRepositoryImpl, wire.Bind(new(user2.GetUserByEmailRepository), new(*user.GetUserByEmailRepositoryImpl)), user.NewUpdateUserByIDRepositoryImpl, wire.Bind(new(user2.UpdateUserByIDRepository), new(*user.UpdateUserByIDRepositoryImpl)), user.NewUpdateUserPasswordRepositoryImpl, wire.Bind(new(user2.UpdateUserPasswordRepository), new(*user.UpdateUserPasswordRepositoryImpl)), user.NewGetUserByIdRepositoryImpl, wire.Bind(new(user2.GetUserByIdRepository), new(*user.GetUserByIdRepositoryImpl)))
 
 // UserUseCaseSet agrupa todos os use cases de user
-var UserUseCaseSet = wire.NewSet(user_usecase.NewCreateUserUseCase, user_usecase.NewGetAllUsersUseCase, user_usecase.NewUpdateUserByIdUseCase, user_usecase.NewUpdateUserPasswordUseCase, user_usecase.NewLoginUseCase)
+var UserUseCaseSet = wire.NewSet(user_usecase.NewCreateUserUseCase, user_usecase.NewGetAllUsersUseCase, user_usecase.NewUpdateUserByIdUseCase, user_usecase.NewUpdateUserPasswordUseCase, user_usecase.NewGetUserByIdUseCase, user_usecase.NewLoginUseCase)
 
 // InfraSet agrupa providers de infraestrutura
 var InfraSet = wire.NewSet(database.ProvideDatabase, database.ProvideQueries, provideJWTService)

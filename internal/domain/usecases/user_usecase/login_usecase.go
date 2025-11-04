@@ -47,16 +47,16 @@ func (uc *LoginUseCase) Execute(input LoginInputDTO) (*LoginOutputDTO, error) {
 	}
 
 	if !user.IsActive {
-		return nil, apperrors.NewForbiddenError("Usuário inativo. Entre em contato com o administrador")
+		return nil, apperrors.NewForbiddenError("Usuário inativo. Entre em contato com o administrador!")
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(input.Password)); err != nil {
-		return nil, apperrors.NewUnauthorizedError("E-mail ou senha incorretos")
+		return nil, apperrors.NewUnauthorizedError("E-mail ou senha incorretos!")
 	}
 
 	token, err := uc.JWTService.GenerateToken(user.ID, user.Email, user.IsAdmin)
 	if err != nil {
-		return nil, apperrors.NewInternalError("Erro ao gerar token de autenticação", err)
+		return nil, apperrors.NewInternalError("Erro ao gerar token de autenticação!", err)
 	}
 
 	return &LoginOutputDTO{
