@@ -18,17 +18,22 @@ type Config struct {
 	JWTSecret       string `mapstructure:"JWT_SECRET"`
 	JWTExpiresInMin int    `mapstructure:"JWT_EXPIRES_IN_MIN"`
 	ServerPort      string `mapstructure:"SERVER_PORT"`
+	AutoMigrate     bool   `mapstructure:"AUTO_MIGRATE"`
 }
 
 func LoadConfig(path string) (*Config, error) {
 	var cfg Config
 
-	viper.SetConfigFile(path)
 	viper.SetConfigType("env")
 	viper.AutomaticEnv()
 
-	if err := viper.ReadInConfig(); err != nil {
-		return nil, fmt.Errorf("erro ao ler config: %w", err)
+	if path != "" {
+		viper.SetConfigFile(path)
+		if err := viper.ReadInConfig(); err != nil {
+			if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+				return nil, fmt.Errorf("erro ao ler config: %w", err)
+			}
+		}
 	}
 
 	if err := viper.Unmarshal(&cfg); err != nil {

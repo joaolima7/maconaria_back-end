@@ -3,10 +3,12 @@ package database
 import (
 	"database/sql"
 	"fmt"
+	"log"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/joaolima7/maconaria_back-end/config"
 	"github.com/joaolima7/maconaria_back-end/internal/infra/database/db"
+	"github.com/joaolima7/maconaria_back-end/internal/infra/database/migrations"
 )
 
 func ProvideDatabase(cfg *config.Config) (*sql.DB, error) {
@@ -21,6 +23,15 @@ func ProvideDatabase(cfg *config.Config) (*sql.DB, error) {
 
 	database.SetMaxOpenConns(25)
 	database.SetMaxIdleConns(5)
+
+	if cfg.AutoMigrate {
+		log.Println("🔄 Executando migrations automaticamente...")
+		migrationService := migrations.NewMigrationService(database, "sql/migrations")
+		if err := migrationService.Up(); err != nil {
+			log.Printf("⚠️  Aviso: erro ao executar migrations: %v", err)
+
+		}
+	}
 
 	return database, nil
 }
