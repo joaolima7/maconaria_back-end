@@ -26,9 +26,15 @@ func ProvideDatabase(cfg *config.Config) (*sql.DB, error) {
 
 	if cfg.AutoMigrate {
 		log.Println("🔄 Executando migrations automaticamente...")
-		migrationService := migrations.NewMigrationService(database, "sql/migrations")
-		if err := migrationService.Up(); err != nil {
-			log.Printf("⚠️  Aviso: erro ao executar migrations: %v", err)
+
+		migrationDB, err := sql.Open(cfg.DBDriver, cfg.GetDSN())
+		if err != nil {
+			log.Printf("⚠️  Aviso: erro ao criar conexão para migrations: %v", err)
+		} else {
+			migrationService := migrations.NewMigrationService(migrationDB, "sql/migrations")
+			if err := migrationService.Up(); err != nil {
+				log.Printf("⚠️  Aviso: erro ao executar migrations: %v", err)
+			}
 
 		}
 	}

@@ -7,6 +7,7 @@
 package di
 
 import (
+	"database/sql"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/wire"
 	"github.com/joaolima7/maconaria_back-end/config"
@@ -23,11 +24,11 @@ import (
 
 // Injectors from wire.go:
 
-// InitializeServer injeta todas as dependências e retorna o servidor configurado
-func InitializeServer(cfg *config.Config) (*server.Server, func(), error) {
+// InitializeApp injeta todas as dependências e retorna App com cleanup
+func InitializeApp(cfg *config.Config) (*App, error) {
 	db, err := database.ProvideDatabase(cfg)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 	queries := database.ProvideQueries(db)
 	createUserRepositoryImpl := user.NewCreateUserRepositoryImpl(queries)
@@ -46,9 +47,12 @@ func InitializeServer(cfg *config.Config) (*server.Server, func(), error) {
 	authMiddleware := middlewares.NewAuthMiddleware(jwtService)
 	router := routes.NewRouter(userHandler, authHandler, authMiddleware)
 	mux := provideChiRouter(router)
-	serverServer := provideServer(mux, cfg)
-	return serverServer, func() {
-	}, nil
+	server := provideServer(mux, cfg)
+	app := &App{
+		Server: server,
+		DB:     db,
+	}
+	return app, nil
 }
 
 // wire.go:
@@ -80,4 +84,17 @@ func provideChiRouter(router *routes.Router) *chi.Mux {
 // provideServer cria instância do servidor
 func provideServer(router *chi.Mux, cfg *config.Config) *server.Server {
 	return server.NewServer(router, cfg.ServerPort)
+}
+
+// App agrupa servidor e banco para gerenciar ciclo de vida
+type App struct {
+	Server *server.Server
+	DB     *sql.DB
+}
+
+// Cleanup fecha a conexão do banco
+func (a *App) Cleanup() {
+	if a.DB != nil {
+		a.DB.Close()
+	}
 }

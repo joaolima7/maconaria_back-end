@@ -5,6 +5,8 @@
 package di
 
 import (
+	"database/sql"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/google/wire"
 	"github.com/joaolima7/maconaria_back-end/config"
@@ -78,13 +80,27 @@ func provideServer(router *chi.Mux, cfg *config.Config) *server.Server {
 	return server.NewServer(router, cfg.ServerPort)
 }
 
-// InitializeServer injeta todas as dependências e retorna o servidor configurado
-func InitializeServer(cfg *config.Config) (*server.Server, func(), error) {
+// App agrupa servidor e banco para gerenciar ciclo de vida
+type App struct {
+	Server *server.Server
+	DB     *sql.DB
+}
+
+// Cleanup fecha a conexão do banco
+func (a *App) Cleanup() {
+	if a.DB != nil {
+		a.DB.Close()
+	}
+}
+
+// InitializeApp injeta todas as dependências e retorna App com cleanup
+func InitializeApp(cfg *config.Config) (*App, error) {
 	wire.Build(
 		InfraSet,
 		UserRepositorySet,
 		UserUseCaseSet,
 		WebSet,
+		wire.Struct(new(App), "Server", "DB"),
 	)
-	return nil, nil, nil
+	return nil, nil
 }

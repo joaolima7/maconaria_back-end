@@ -60,7 +60,7 @@ func (rt *Router) Setup() *chi.Mux {
 		})
 
 		r.Group(func(r chi.Router) {
-			r.Use(rt.AuthMiddleware.Authenticate)
+			// r.Use(rt.AuthMiddleware.Authenticate)
 
 			r.Route("/users", func(r chi.Router) {
 				r.Post("/", rt.UserHandler.CreateUser)

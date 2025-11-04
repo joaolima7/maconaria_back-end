@@ -15,16 +15,17 @@ func main() {
 
 	log.Println("✅ Configurações carregadas")
 
-	server, cleanup, err := di.InitializeServer(cfg)
+	app, err := di.InitializeApp(cfg)
 	if err != nil {
-		log.Fatalf("❌ Erro ao inicializar servidor: %v", err)
+		log.Fatalf("❌ Erro ao inicializar aplicação: %v", err)
 	}
-	defer cleanup()
+	defer app.Cleanup() // Agora fecha o banco APÓS o servidor parar
 
 	log.Println("✅ Banco de dados conectado")
 	log.Println("✅ Dependências injetadas")
 
-	if err := server.Start(); err != nil {
+	// Start é bloqueante até receber sinal de interrupção
+	if err := app.Server.Start(); err != nil {
 		log.Fatalf("❌ Erro no servidor: %v", err)
 	}
 }

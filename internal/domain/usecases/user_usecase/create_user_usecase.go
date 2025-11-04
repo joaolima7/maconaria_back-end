@@ -1,6 +1,8 @@
 package user_usecase
 
 import (
+	"time"
+
 	"github.com/google/uuid"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/entity"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/repositories/user"
@@ -15,11 +17,13 @@ type CreateUserInputDTO struct {
 }
 
 type CreateUserOutputDTO struct {
-	ID       string `json:"id"`
-	Name     string `json:"name"`
-	Email    string `json:"email"`
-	IsAdmin  bool   `json:"is_admin"`
-	IsActive bool   `json:"is_active"`
+	ID        string    `json:"id"`
+	Name      string    `json:"name"`
+	Email     string    `json:"email"`
+	IsAdmin   bool      `json:"is_admin"`
+	IsActive  bool      `json:"is_active"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 type CreateUserUseCase struct {
@@ -51,10 +55,12 @@ func (uc *CreateUserUseCase) Execute(input CreateUserInputDTO) (*CreateUserOutpu
 	}
 
 	return &CreateUserOutputDTO{
-		ID:       userCreated.ID,
-		Name:     userCreated.Name,
-		Email:    userCreated.Email,
-		IsAdmin:  userCreated.IsAdmin,
-		IsActive: userCreated.IsActive,
+		ID:        userCreated.ID,
+		Name:      userCreated.Name,
+		Email:     userCreated.Email,
+		IsAdmin:   userCreated.IsAdmin,
+		IsActive:  userCreated.IsActive,
+		CreatedAt: user.CreatedAt,
+		UpdatedAt: user.UpdatedAt,
 	}, nil
 }
