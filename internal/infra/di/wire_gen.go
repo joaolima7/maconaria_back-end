@@ -14,7 +14,9 @@ import (
 	user2 "github.com/joaolima7/maconaria_back-end/internal/domain/repositories/user"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/usecases/user_usecase"
 	"github.com/joaolima7/maconaria_back-end/internal/infra/database"
+	"github.com/joaolima7/maconaria_back-end/internal/infra/web/auth"
 	"github.com/joaolima7/maconaria_back-end/internal/infra/web/handlers"
+	"github.com/joaolima7/maconaria_back-end/internal/infra/web/middlewares"
 	"github.com/joaolima7/maconaria_back-end/internal/infra/web/routes"
 	"github.com/joaolima7/maconaria_back-end/internal/infra/web/server"
 )
@@ -37,7 +39,12 @@ func InitializeServer(cfg *config.Config) (*server.Server, func(), error) {
 	updateUserPasswordRepositoryImpl := user.NewUpdateUserPasswordRepositoryImpl(queries)
 	updateUserPasswordUseCase := user_usecase.NewUpdateUserPasswordUseCase(updateUserPasswordRepositoryImpl)
 	userHandler := handlers.NewUserHandler(createUserUseCase, getAllUsersUseCase, updateUserByIdUseCase, updateUserPasswordUseCase)
-	router := routes.NewRouter(userHandler)
+	getUserByEmailRepositoryImpl := user.NewGetUserByEmailRepositoryImpl(queries)
+	jwtService := provideJWTService(cfg)
+	loginUseCase := user_usecase.NewLoginUseCase(getUserByEmailRepositoryImpl, jwtService)
+	authHandler := handlers.NewAuthHandler(loginUseCase)
+	authMiddleware := middlewares.NewAuthMiddleware(jwtService)
+	router := routes.NewRouter(userHandler, authHandler, authMiddleware)
 	mux := provideChiRouter(router)
 	serverServer := provideServer(mux, cfg)
 	return serverServer, func() {
@@ -47,18 +54,23 @@ func InitializeServer(cfg *config.Config) (*server.Server, func(), error) {
 // wire.go:
 
 // UserRepositorySet agrupa todos os providers de repositórios de user
-var UserRepositorySet = wire.NewSet(user.NewCreateUserRepositoryImpl, wire.Bind(new(user2.CreateUserRepository), new(*user.CreateUserRepositoryImpl)), user.NewGetAllUsersRepositoryImpl, wire.Bind(new(user2.GetAllUsersRepository), new(*user.GetAllUsersRepositoryImpl)), user.NewUpdateUserByIDRepositoryImpl, wire.Bind(new(user2.UpdateUserByIDRepository), new(*user.UpdateUserByIDRepositoryImpl)), user.NewUpdateUserPasswordRepositoryImpl, wire.Bind(new(user2.UpdateUserPasswordRepository), new(*user.UpdateUserPasswordRepositoryImpl)))
+var UserRepositorySet = wire.NewSet(user.NewCreateUserRepositoryImpl, wire.Bind(new(user2.CreateUserRepository), new(*user.CreateUserRepositoryImpl)), user.NewGetAllUsersRepositoryImpl, wire.Bind(new(user2.GetAllUsersRepository), new(*user.GetAllUsersRepositoryImpl)), user.NewGetUserByEmailRepositoryImpl, wire.Bind(new(user2.GetUserByEmailRepository), new(*user.GetUserByEmailRepositoryImpl)), user.NewUpdateUserByIDRepositoryImpl, wire.Bind(new(user2.UpdateUserByIDRepository), new(*user.UpdateUserByIDRepositoryImpl)), user.NewUpdateUserPasswordRepositoryImpl, wire.Bind(new(user2.UpdateUserPasswordRepository), new(*user.UpdateUserPasswordRepositoryImpl)))
 
 // UserUseCaseSet agrupa todos os use cases de user
-var UserUseCaseSet = wire.NewSet(user_usecase.NewCreateUserUseCase, user_usecase.NewGetAllUsersUseCase, user_usecase.NewUpdateUserByIdUseCase, user_usecase.NewUpdateUserPasswordUseCase)
+var UserUseCaseSet = wire.NewSet(user_usecase.NewCreateUserUseCase, user_usecase.NewGetAllUsersUseCase, user_usecase.NewUpdateUserByIdUseCase, user_usecase.NewUpdateUserPasswordUseCase, user_usecase.NewLoginUseCase)
 
 // InfraSet agrupa providers de infraestrutura
-var InfraSet = wire.NewSet(database.ProvideDatabase, database.ProvideQueries)
+var InfraSet = wire.NewSet(database.ProvideDatabase, database.ProvideQueries, provideJWTService)
 
 // WebSet agrupa providers da camada web
-var WebSet = wire.NewSet(handlers.NewUserHandler, routes.NewRouter, provideChiRouter,
+var WebSet = wire.NewSet(handlers.NewUserHandler, handlers.NewAuthHandler, middlewares.NewAuthMiddleware, routes.NewRouter, provideChiRouter,
 	provideServer,
 )
+
+// provideJWTService cria instância do serviço JWT
+func provideJWTService(cfg *config.Config) *auth.JWTService {
+	return auth.NewJWTService(cfg.JWTSecret, cfg.GetJWTDuration())
+}
 
 // provideChiRouter configura o router Chi
 func provideChiRouter(router *routes.Router) *chi.Mux {
@@ -67,6 +79,5 @@ func provideChiRouter(router *routes.Router) *chi.Mux {
 
 // provideServer cria instância do servidor
 func provideServer(router *chi.Mux, cfg *config.Config) *server.Server {
-	port := "8080"
-	return server.NewServer(router, port)
+	return server.NewServer(router, cfg.ServerPort)
 }

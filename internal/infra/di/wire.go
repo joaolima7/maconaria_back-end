@@ -12,7 +12,9 @@ import (
 	userdomain "github.com/joaolima7/maconaria_back-end/internal/domain/repositories/user"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/usecases/user_usecase"
 	"github.com/joaolima7/maconaria_back-end/internal/infra/database"
+	"github.com/joaolima7/maconaria_back-end/internal/infra/web/auth"
 	"github.com/joaolima7/maconaria_back-end/internal/infra/web/handlers"
+	"github.com/joaolima7/maconaria_back-end/internal/infra/web/middlewares"
 	"github.com/joaolima7/maconaria_back-end/internal/infra/web/routes"
 	"github.com/joaolima7/maconaria_back-end/internal/infra/web/server"
 )
@@ -24,6 +26,9 @@ var UserRepositorySet = wire.NewSet(
 
 	userdata.NewGetAllUsersRepositoryImpl,
 	wire.Bind(new(userdomain.GetAllUsersRepository), new(*userdata.GetAllUsersRepositoryImpl)),
+
+	userdata.NewGetUserByEmailRepositoryImpl,
+	wire.Bind(new(userdomain.GetUserByEmailRepository), new(*userdata.GetUserByEmailRepositoryImpl)),
 
 	userdata.NewUpdateUserByIDRepositoryImpl,
 	wire.Bind(new(userdomain.UpdateUserByIDRepository), new(*userdata.UpdateUserByIDRepositoryImpl)),
@@ -38,21 +43,30 @@ var UserUseCaseSet = wire.NewSet(
 	user_usecase.NewGetAllUsersUseCase,
 	user_usecase.NewUpdateUserByIdUseCase,
 	user_usecase.NewUpdateUserPasswordUseCase,
+	user_usecase.NewLoginUseCase,
 )
 
 // InfraSet agrupa providers de infraestrutura
 var InfraSet = wire.NewSet(
 	database.ProvideDatabase,
 	database.ProvideQueries,
+	provideJWTService,
 )
 
 // WebSet agrupa providers da camada web
 var WebSet = wire.NewSet(
 	handlers.NewUserHandler,
+	handlers.NewAuthHandler,
+	middlewares.NewAuthMiddleware,
 	routes.NewRouter,
 	provideChiRouter,
 	provideServer,
 )
+
+// provideJWTService cria instância do serviço JWT
+func provideJWTService(cfg *config.Config) *auth.JWTService {
+	return auth.NewJWTService(cfg.JWTSecret, cfg.GetJWTDuration())
+}
 
 // provideChiRouter configura o router Chi
 func provideChiRouter(router *routes.Router) *chi.Mux {
@@ -61,8 +75,7 @@ func provideChiRouter(router *routes.Router) *chi.Mux {
 
 // provideServer cria instância do servidor
 func provideServer(router *chi.Mux, cfg *config.Config) *server.Server {
-	port := "8080" // pode adicionar no .env depois
-	return server.NewServer(router, port)
+	return server.NewServer(router, cfg.ServerPort)
 }
 
 // InitializeServer injeta todas as dependências e retorna o servidor configurado

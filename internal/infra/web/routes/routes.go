@@ -7,14 +7,25 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 	"github.com/joaolima7/maconaria_back-end/internal/infra/web/handlers"
+	"github.com/joaolima7/maconaria_back-end/internal/infra/web/middlewares"
 )
 
 type Router struct {
-	UserHandler *handlers.UserHandler
+	UserHandler    *handlers.UserHandler
+	AuthHandler    *handlers.AuthHandler
+	AuthMiddleware *middlewares.AuthMiddleware
 }
 
-func NewRouter(userHandler *handlers.UserHandler) *Router {
-	return &Router{UserHandler: userHandler}
+func NewRouter(
+	userHandler *handlers.UserHandler,
+	authHandler *handlers.AuthHandler,
+	authMiddleware *middlewares.AuthMiddleware,
+) *Router {
+	return &Router{
+		UserHandler:    userHandler,
+		AuthHandler:    authHandler,
+		AuthMiddleware: authMiddleware,
+	}
 }
 
 func (rt *Router) Setup() *chi.Mux {
@@ -41,11 +52,22 @@ func (rt *Router) Setup() *chi.Mux {
 	})
 
 	r.Route("/api", func(r chi.Router) {
-		r.Route("/users", func(r chi.Router) {
-			r.Post("/", rt.UserHandler.CreateUser)
-			r.Get("/", rt.UserHandler.GetAllUsers)
-			r.Put("/{id}", rt.UserHandler.UpdateUser)
-			r.Patch("/{id}/password", rt.UserHandler.UpdateUserPassword)
+
+		r.Group(func(r chi.Router) {
+			r.Route("/auth", func(r chi.Router) {
+				r.Post("/login", rt.AuthHandler.Login)
+			})
+		})
+
+		r.Group(func(r chi.Router) {
+			r.Use(rt.AuthMiddleware.Authenticate)
+
+			r.Route("/users", func(r chi.Router) {
+				r.Post("/", rt.UserHandler.CreateUser)
+				r.Get("/", rt.UserHandler.GetAllUsers)
+				r.Put("/{id}", rt.UserHandler.UpdateUser)
+				r.Patch("/{id}/password", rt.UserHandler.UpdateUserPassword)
+			})
 		})
 	})
 

@@ -2,18 +2,22 @@ package config
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/spf13/viper"
 )
 
 type Config struct {
-	DBDriver   string `mapstructure:"DB_DRIVER"`
-	DBHost     string `mapstructure:"DB_HOST"`
-	DBPort     string `mapstructure:"DB_PORT"`
-	DBUser     string `mapstructure:"DB_USER"`
-	DBPassword string `mapstructure:"DB_PASSWORD"`
-	DBName     string `mapstructure:"DB_NAME"`
-	DBSSLMode  string `mapstructure:"DB_SSLMODE"`
+	DBDriver        string `mapstructure:"DB_DRIVER"`
+	DBHost          string `mapstructure:"DB_HOST"`
+	DBPort          string `mapstructure:"DB_PORT"`
+	DBUser          string `mapstructure:"DB_USER"`
+	DBPassword      string `mapstructure:"DB_PASSWORD"`
+	DBName          string `mapstructure:"DB_NAME"`
+	DBSSLMode       string `mapstructure:"DB_SSLMODE"`
+	JWTSecret       string `mapstructure:"JWT_SECRET"`
+	JWTExpiresInMin int    `mapstructure:"JWT_EXPIRES_IN_MIN"`
+	ServerPort      string `mapstructure:"SERVER_PORT"`
 }
 
 func LoadConfig(path string) (*Config, error) {
@@ -42,4 +46,8 @@ func (c *Config) GetDSN() string {
 		c.DBPort,
 		c.DBName,
 	)
+}
+
+func (c *Config) GetJWTDuration() time.Duration {
+	return time.Duration(c.JWTExpiresInMin) * time.Minute
 }
