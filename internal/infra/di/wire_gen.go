@@ -46,8 +46,9 @@ func InitializeApp(cfg *config.Config) (*App, error) {
 	jwtService := provideJWTService(cfg)
 	loginUseCase := user_usecase.NewLoginUseCase(getUserByEmailRepositoryImpl, jwtService)
 	authHandler := handlers.NewAuthHandler(loginUseCase)
+	healthHandler := handlers.NewHealthHandler(db)
 	authMiddleware := middlewares.NewAuthMiddleware(jwtService)
-	router := routes.NewRouter(userHandler, authHandler, authMiddleware)
+	router := routes.NewRouter(userHandler, authHandler, healthHandler, authMiddleware)
 	mux := provideChiRouter(router)
 	server := provideServer(mux, cfg)
 	app := &App{
@@ -69,7 +70,7 @@ var UserUseCaseSet = wire.NewSet(user_usecase.NewCreateUserUseCase, user_usecase
 var InfraSet = wire.NewSet(database.ProvideDatabase, database.ProvideQueries, provideJWTService)
 
 // WebSet agrupa providers da camada web
-var WebSet = wire.NewSet(handlers.NewUserHandler, handlers.NewAuthHandler, middlewares.NewAuthMiddleware, routes.NewRouter, provideChiRouter,
+var WebSet = wire.NewSet(handlers.NewUserHandler, handlers.NewAuthHandler, handlers.NewHealthHandler, middlewares.NewAuthMiddleware, routes.NewRouter, provideChiRouter,
 	provideServer,
 )
 
