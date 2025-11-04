@@ -1,8 +1,6 @@
 package routes
 
 import (
-	"net/http"
-
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
@@ -13,17 +11,20 @@ import (
 type Router struct {
 	UserHandler    *handlers.UserHandler
 	AuthHandler    *handlers.AuthHandler
+	HealthHandler  *handlers.HealthHandler
 	AuthMiddleware *middlewares.AuthMiddleware
 }
 
 func NewRouter(
 	userHandler *handlers.UserHandler,
 	authHandler *handlers.AuthHandler,
+	healthHandler *handlers.HealthHandler,
 	authMiddleware *middlewares.AuthMiddleware,
 ) *Router {
 	return &Router{
 		UserHandler:    userHandler,
 		AuthHandler:    authHandler,
+		HealthHandler:  healthHandler,
 		AuthMiddleware: authMiddleware,
 	}
 }
@@ -46,10 +47,7 @@ func (rt *Router) Setup() *chi.Mux {
 		MaxAge:           300,
 	}))
 
-	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(200)
-		w.Write([]byte("OK"))
-	})
+	r.Get("/health", rt.HealthHandler.Check)
 
 	r.Route("/api", func(r chi.Router) {
 
@@ -63,8 +61,9 @@ func (rt *Router) Setup() *chi.Mux {
 			r.Use(rt.AuthMiddleware.Authenticate)
 
 			r.Route("/users", func(r chi.Router) {
-				r.Post("/", rt.UserHandler.CreateUser)
 				r.Get("/", rt.UserHandler.GetAllUsers)
+				r.Get("/{id}", rt.UserHandler.GetUserById)
+				r.Post("/", rt.UserHandler.CreateUser)
 				r.Put("/{id}", rt.UserHandler.UpdateUser)
 				r.Patch("/{id}/password", rt.UserHandler.UpdateUserPassword)
 			})

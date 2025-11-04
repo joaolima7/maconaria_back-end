@@ -50,8 +50,8 @@ func NewValidationError(field string, message string) *AppError {
 func NewDuplicateError(field string, value string) *AppError {
 	return &AppError{
 		Code:       CodeDuplicateEntry,
-		Message:    fmt.Sprintf("O %s '%s' já está em uso", field, value),
-		Detail:     "Tente usar outro valor",
+		Message:    fmt.Sprintf("O %s '%s' já está em uso!", field, value),
+		Detail:     "Tente usar outro valor!",
 		StatusCode: 409,
 	}
 }
@@ -59,7 +59,7 @@ func NewDuplicateError(field string, value string) *AppError {
 func NewNotFoundError(resource string) *AppError {
 	return &AppError{
 		Code:       CodeNotFound,
-		Message:    fmt.Sprintf("%s não encontrado", resource),
+		Message:    fmt.Sprintf("%s não encontrado!", resource),
 		StatusCode: 404,
 	}
 }
@@ -83,7 +83,7 @@ func NewForbiddenError(message string) *AppError {
 func NewInternalError(message string, err error) *AppError {
 	return &AppError{
 		Code:       CodeInternalError,
-		Message:    "Erro interno do servidor",
+		Message:    "Erro interno do servidor.",
 		Detail:     message,
 		StatusCode: 500,
 		Err:        err,
@@ -108,7 +108,7 @@ func WrapDatabaseError(err error, operation string) *AppError {
 	return &AppError{
 		Code:       CodeDatabaseError,
 		Message:    fmt.Sprintf("Erro ao %s", operation),
-		Detail:     "Erro de banco de dados",
+		Detail:     "Erro de banco de dados.",
 		StatusCode: 500,
 		Err:        err,
 	}
@@ -123,8 +123,8 @@ func parseMySQLError(err *mysql.MySQLError) *AppError {
 	case 1452:
 		return &AppError{
 			Code:       CodeValidationError,
-			Message:    "Referência inválida",
-			Detail:     "O registro relacionado não existe",
+			Message:    "Referência inválida!",
+			Detail:     "O registro relacionado não existe!",
 			StatusCode: 400,
 			Err:        err,
 		}
@@ -132,8 +132,8 @@ func parseMySQLError(err *mysql.MySQLError) *AppError {
 	case 1054:
 		return &AppError{
 			Code:       CodeDatabaseError,
-			Message:    "Erro de banco de dados",
-			Detail:     "Coluna não encontrada",
+			Message:    "Erro de banco de dados.",
+			Detail:     "Coluna não encontrada.",
 			StatusCode: 500,
 			Err:        err,
 		}
@@ -141,7 +141,7 @@ func parseMySQLError(err *mysql.MySQLError) *AppError {
 	default:
 		return &AppError{
 			Code:       CodeDatabaseError,
-			Message:    "Erro de banco de dados",
+			Message:    "Erro de banco de dados.",
 			Detail:     err.Message,
 			StatusCode: 500,
 			Err:        err,

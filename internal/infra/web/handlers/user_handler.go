@@ -15,6 +15,7 @@ type UserHandler struct {
 	GetAllUsersUseCase    *user_usecase.GetAllUsersUseCase
 	UpdateUserByIdUseCase *user_usecase.UpdateUserByIdUseCase
 	UpdatePasswordUseCase *user_usecase.UpdateUserPasswordUseCase
+	GetUserByIdUseCase    *user_usecase.GetUserByIdUseCase
 }
 
 func NewUserHandler(
@@ -22,12 +23,14 @@ func NewUserHandler(
 	getAllUsersUseCase *user_usecase.GetAllUsersUseCase,
 	updateUserByIdUseCase *user_usecase.UpdateUserByIdUseCase,
 	updatePasswordUseCase *user_usecase.UpdateUserPasswordUseCase,
+	getUserByIdUseCase *user_usecase.GetUserByIdUseCase,
 ) *UserHandler {
 	return &UserHandler{
 		CreateUserUseCase:     createUserUseCase,
 		GetAllUsersUseCase:    getAllUsersUseCase,
 		UpdateUserByIdUseCase: updateUserByIdUseCase,
 		UpdatePasswordUseCase: updatePasswordUseCase,
+		GetUserByIdUseCase:    getUserByIdUseCase,
 	}
 }
 
@@ -76,6 +79,18 @@ func (h *UserHandler) GetAllUsers(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response.OK(w, "Todos os usuários buscados com sucesso!", output)
+}
+
+func (h *UserHandler) GetUserById(w http.ResponseWriter, r *http.Request) {
+	userID := chi.URLParam(r, "id")
+
+	output, err := h.GetUserByIdUseCase.Execute(user_usecase.GetUserByIdInputDTO{ID: userID})
+	if err != nil {
+		response.Error(w, err)
+		return
+	}
+
+	response.OK(w, "Usuário obtido com sucesso!", output)
 }
 
 // UpdateUser godoc

@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 
+	"github.com/joaolima7/maconaria_back-end/internal/domain/apperrors"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/entity"
 	"github.com/joaolima7/maconaria_back-end/internal/infra/database/db"
 )
@@ -25,9 +26,9 @@ func (r *GetUserByIdRepositoryImpl) GetUserById(id string) (*entity.User, error)
 	userDB, err := r.queries.GetUserByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, errors.New("usuário não encontrado")
+			return nil, apperrors.NewNotFoundError("Usuário")
 		}
-		return nil, err
+		return nil, apperrors.WrapDatabaseError(err, "buscar usuário")
 	}
 
 	return &entity.User{

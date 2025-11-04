@@ -2,6 +2,8 @@ package config
 
 import (
 	"fmt"
+	"os"
+	"strconv"
 	"time"
 
 	"github.com/spf13/viper"
@@ -28,10 +30,12 @@ func LoadConfig(path string) (*Config, error) {
 	viper.AutomaticEnv()
 
 	if path != "" {
-		viper.SetConfigFile(path)
-		if err := viper.ReadInConfig(); err != nil {
-			if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
-				return nil, fmt.Errorf("erro ao ler config: %w", err)
+		if _, err := os.Stat(path); err == nil {
+			viper.SetConfigFile(path)
+			if err := viper.ReadInConfig(); err != nil {
+				if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+					return nil, fmt.Errorf("erro ao ler config: %w", err)
+				}
 			}
 		}
 	}
@@ -40,11 +44,28 @@ func LoadConfig(path string) (*Config, error) {
 		return nil, fmt.Errorf("erro ao fazer unmarshal config: %w", err)
 	}
 
+	if cfg.DBDriver == "" {
+		cfg.DBDriver = "mysql"
+	}
+	if cfg.JWTSecret == "" {
+		cfg.JWTSecret = "default-secret-key-change-me"
+	}
+	if cfg.JWTExpiresInMin == 0 {
+		cfg.JWTExpiresInMin = 1440
+	}
+	if cfg.ServerPort == "" {
+		cfg.ServerPort = "8080"
+	}
+
+	if autoMigrateStr := os.Getenv("AUTO_MIGRATE"); autoMigrateStr != "" {
+		cfg.AutoMigrate, _ = strconv.ParseBool(autoMigrateStr)
+	}
+
 	return &cfg, nil
 }
 
 func (c *Config) GetDSN() string {
-	return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true",
+	return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true&timeout=10s&readTimeout=30s&writeTimeout=30s&loc=Local",
 		c.DBUser,
 		c.DBPassword,
 		c.DBHost,

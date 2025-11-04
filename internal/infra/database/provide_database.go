@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/joaolima7/maconaria_back-end/config"
@@ -22,7 +23,9 @@ func ProvideDatabase(cfg *config.Config) (*sql.DB, error) {
 	}
 
 	database.SetMaxOpenConns(25)
-	database.SetMaxIdleConns(5)
+	database.SetMaxIdleConns(10)
+	database.SetConnMaxLifetime(5 * time.Minute)
+	database.SetConnMaxIdleTime(2 * time.Minute)
 
 	if cfg.AutoMigrate {
 		log.Println("🔄 Executando migrations automaticamente...")
@@ -35,11 +38,23 @@ func ProvideDatabase(cfg *config.Config) (*sql.DB, error) {
 			if err := migrationService.Up(); err != nil {
 				log.Printf("⚠️  Aviso: erro ao executar migrations: %v", err)
 			}
-
 		}
 	}
 
+	go keepAlive(database)
+
 	return database, nil
+}
+
+func keepAlive(db *sql.DB) {
+	ticker := time.NewTicker(1 * time.Minute)
+	defer ticker.Stop()
+
+	for range ticker.C {
+		if err := db.Ping(); err != nil {
+			log.Printf("⚠️  Keep-alive ping falhou: %v", err)
+		}
+	}
 }
 
 func ProvideQueries(database *sql.DB) *db.Queries {

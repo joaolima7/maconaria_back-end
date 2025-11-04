@@ -63,6 +63,7 @@ var InfraSet = wire.NewSet(
 var WebSet = wire.NewSet(
 	handlers.NewUserHandler,
 	handlers.NewAuthHandler,
+	handlers.NewHealthHandler,
 	middlewares.NewAuthMiddleware,
 	routes.NewRouter,
 	provideChiRouter,
