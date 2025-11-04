@@ -48,6 +48,7 @@ func (rt *Router) Setup() *chi.Mux {
 	}))
 
 	r.Get("/health", rt.HealthHandler.Check)
+	r.Head("/health", rt.HealthHandler.Check)
 
 	r.Route("/api", func(r chi.Router) {
 
