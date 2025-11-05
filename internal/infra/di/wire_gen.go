@@ -12,12 +12,15 @@ import (
 	"github.com/google/wire"
 	"github.com/joaolima7/maconaria_back-end/config"
 	"github.com/joaolima7/maconaria_back-end/internal/data/repositories/post"
+	"github.com/joaolima7/maconaria_back-end/internal/data/repositories/timeline"
 	"github.com/joaolima7/maconaria_back-end/internal/data/repositories/user"
 	"github.com/joaolima7/maconaria_back-end/internal/data/repositories/worker"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/repositories/post"
+	timeline2 "github.com/joaolima7/maconaria_back-end/internal/domain/repositories/timeline"
 	user2 "github.com/joaolima7/maconaria_back-end/internal/domain/repositories/user"
 	worker2 "github.com/joaolima7/maconaria_back-end/internal/domain/repositories/worker"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/usecases/post_usecase"
+	"github.com/joaolima7/maconaria_back-end/internal/domain/usecases/timeline_usecase"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/usecases/user_usecase"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/usecases/worker_usecase"
 	"github.com/joaolima7/maconaria_back-end/internal/infra/database"
@@ -72,9 +75,20 @@ func InitializeApp(cfg *config.Config) (*App, error) {
 	deleteWorkerRepositoryImpl := worker.NewDeleteWorkerRepositoryImpl(queries)
 	deleteWorkerUseCase := worker_usecase.NewDeleteWorkerUseCase(deleteWorkerRepositoryImpl)
 	workerHandler := handlers.NewWorkerHandler(createWorkerUseCase, getAllWorkersUseCase, getWorkerByIDUseCase, updateWorkerByIDUseCase, deleteWorkerUseCase)
+	createTimelineRepositoryImpl := timeline.NewCreateTimelineRepositoryImpl(queries)
+	createTimelineUseCase := timeline_usecase.NewCreateTimelineUseCase(createTimelineRepositoryImpl)
+	getAllTimelinesRepositoryImpl := timeline.NewGetAllTimelinesRepositoryImpl(queries)
+	getAllTimelinesUseCase := timeline_usecase.NewGetAllTimelinesUseCase(getAllTimelinesRepositoryImpl)
+	getTimelineByIDRepositoryImpl := timeline.NewGetTimelineByIDRepositoryImpl(queries)
+	getTimelineByIDUseCase := timeline_usecase.NewGetTimelineByIDUseCase(getTimelineByIDRepositoryImpl)
+	updateTimelineByIDRepositoryImpl := timeline.NewUpdateTimelineByIDRepositoryImpl(queries)
+	updateTimelineByIDUseCase := timeline_usecase.NewUpdateTimelineByIDUseCase(updateTimelineByIDRepositoryImpl)
+	deleteTimelineRepositoryImpl := timeline.NewDeleteTimelineRepositoryImpl(queries)
+	deleteTimelineUseCase := timeline_usecase.NewDeleteTimelineUseCase(deleteTimelineRepositoryImpl)
+	timelineHandler := handlers.NewTimelineHandler(createTimelineUseCase, getAllTimelinesUseCase, getTimelineByIDUseCase, updateTimelineByIDUseCase, deleteTimelineUseCase)
 	healthHandler := handlers.NewHealthHandler(db)
 	authMiddleware := middlewares.NewAuthMiddleware(jwtService)
-	router := routes.NewRouter(userHandler, authHandler, postHandler, workerHandler, healthHandler, authMiddleware)
+	router := routes.NewRouter(userHandler, authHandler, postHandler, workerHandler, timelineHandler, healthHandler, authMiddleware)
 	mux := provideChiRouter(router)
 	server := provideServer(mux, cfg)
 	app := &App{
@@ -95,6 +109,9 @@ var PostRepositorySet = wire.NewSet(post.NewPostImageRepositoryImpl, wire.Bind(n
 // Worker Repository Set
 var WorkerRepositorySet = wire.NewSet(worker.NewCreateWorkerRepositoryImpl, wire.Bind(new(worker2.CreateWorkerRepository), new(*worker.CreateWorkerRepositoryImpl)), worker.NewGetAllWorkersRepositoryImpl, wire.Bind(new(worker2.GetAllWorkersRepository), new(*worker.GetAllWorkersRepositoryImpl)), worker.NewGetWorkerByIDRepositoryImpl, wire.Bind(new(worker2.GetWorkerByIDRepository), new(*worker.GetWorkerByIDRepositoryImpl)), worker.NewUpdateWorkerByIDRepositoryImpl, wire.Bind(new(worker2.UpdateWorkerByIDRepository), new(*worker.UpdateWorkerByIDRepositoryImpl)), worker.NewDeleteWorkerRepositoryImpl, wire.Bind(new(worker2.DeleteWorkerRepository), new(*worker.DeleteWorkerRepositoryImpl)))
 
+// Timeline Repository Set
+var TimelineRepositorySet = wire.NewSet(timeline.NewCreateTimelineRepositoryImpl, wire.Bind(new(timeline2.CreateTimelineRepository), new(*timeline.CreateTimelineRepositoryImpl)), timeline.NewGetAllTimelinesRepositoryImpl, wire.Bind(new(timeline2.GetAllTimelinesRepository), new(*timeline.GetAllTimelinesRepositoryImpl)), timeline.NewGetTimelineByIDRepositoryImpl, wire.Bind(new(timeline2.GetTimelineByIDRepository), new(*timeline.GetTimelineByIDRepositoryImpl)), timeline.NewUpdateTimelineByIDRepositoryImpl, wire.Bind(new(timeline2.UpdateTimelineByIDRepository), new(*timeline.UpdateTimelineByIDRepositoryImpl)), timeline.NewDeleteTimelineRepositoryImpl, wire.Bind(new(timeline2.DeleteTimelineRepository), new(*timeline.DeleteTimelineRepositoryImpl)))
+
 // User UseCase Set
 var UserUseCaseSet = wire.NewSet(user_usecase.NewCreateUserUseCase, user_usecase.NewGetAllUsersUseCase, user_usecase.NewGetUserByIdUseCase, user_usecase.NewUpdateUserByIdUseCase, user_usecase.NewUpdateUserPasswordUseCase, user_usecase.NewLoginUseCase)
 
@@ -104,11 +121,14 @@ var PostUseCaseSet = wire.NewSet(post_usecase.NewCreatePostUseCase, post_usecase
 // Worker UseCase Set
 var WorkerUseCaseSet = wire.NewSet(worker_usecase.NewCreateWorkerUseCase, worker_usecase.NewGetAllWorkersUseCase, worker_usecase.NewGetWorkerByIDUseCase, worker_usecase.NewUpdateWorkerByIDUseCase, worker_usecase.NewDeleteWorkerUseCase)
 
+// Timeline UseCase Set
+var TimelineUseCaseSet = wire.NewSet(timeline_usecase.NewCreateTimelineUseCase, timeline_usecase.NewGetAllTimelinesUseCase, timeline_usecase.NewGetTimelineByIDUseCase, timeline_usecase.NewUpdateTimelineByIDUseCase, timeline_usecase.NewDeleteTimelineUseCase)
+
 // Infra Set
 var InfraSet = wire.NewSet(database.ProvideDatabase, database.ProvideQueries, provideJWTService)
 
 // Web Set
-var WebSet = wire.NewSet(handlers.NewUserHandler, handlers.NewAuthHandler, handlers.NewPostHandler, handlers.NewWorkerHandler, handlers.NewHealthHandler, middlewares.NewAuthMiddleware, routes.NewRouter, provideChiRouter,
+var WebSet = wire.NewSet(handlers.NewUserHandler, handlers.NewAuthHandler, handlers.NewPostHandler, handlers.NewWorkerHandler, handlers.NewTimelineHandler, handlers.NewHealthHandler, middlewares.NewAuthMiddleware, routes.NewRouter, provideChiRouter,
 	provideServer,
 )
 

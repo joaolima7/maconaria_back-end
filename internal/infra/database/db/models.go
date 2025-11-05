@@ -78,6 +78,15 @@ type PostImage struct {
 	CreatedAt sql.NullTime
 }
 
+type Timeline struct {
+	ID          string
+	Period      string
+	PdfData     []byte
+	IsHighlight bool
+	CreatedAt   sql.NullTime
+	UpdatedAt   sql.NullTime
+}
+
 type User struct {
 	ID        string
 	Name      string

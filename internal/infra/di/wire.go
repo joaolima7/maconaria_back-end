@@ -10,12 +10,15 @@ import (
 	"github.com/google/wire"
 	"github.com/joaolima7/maconaria_back-end/config"
 	postdata "github.com/joaolima7/maconaria_back-end/internal/data/repositories/post"
+	timelinedata "github.com/joaolima7/maconaria_back-end/internal/data/repositories/timeline"
 	userdata "github.com/joaolima7/maconaria_back-end/internal/data/repositories/user"
 	workerdata "github.com/joaolima7/maconaria_back-end/internal/data/repositories/worker"
 	postdomain "github.com/joaolima7/maconaria_back-end/internal/domain/repositories/post"
+	timelinedomain "github.com/joaolima7/maconaria_back-end/internal/domain/repositories/timeline"
 	userdomain "github.com/joaolima7/maconaria_back-end/internal/domain/repositories/user"
 	workerdomain "github.com/joaolima7/maconaria_back-end/internal/domain/repositories/worker"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/usecases/post_usecase"
+	"github.com/joaolima7/maconaria_back-end/internal/domain/usecases/timeline_usecase"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/usecases/user_usecase"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/usecases/worker_usecase"
 	"github.com/joaolima7/maconaria_back-end/internal/infra/database"
@@ -83,6 +86,24 @@ var WorkerRepositorySet = wire.NewSet(
 	wire.Bind(new(workerdomain.DeleteWorkerRepository), new(*workerdata.DeleteWorkerRepositoryImpl)),
 )
 
+// Timeline Repository Set
+var TimelineRepositorySet = wire.NewSet(
+	timelinedata.NewCreateTimelineRepositoryImpl,
+	wire.Bind(new(timelinedomain.CreateTimelineRepository), new(*timelinedata.CreateTimelineRepositoryImpl)),
+
+	timelinedata.NewGetAllTimelinesRepositoryImpl,
+	wire.Bind(new(timelinedomain.GetAllTimelinesRepository), new(*timelinedata.GetAllTimelinesRepositoryImpl)),
+
+	timelinedata.NewGetTimelineByIDRepositoryImpl,
+	wire.Bind(new(timelinedomain.GetTimelineByIDRepository), new(*timelinedata.GetTimelineByIDRepositoryImpl)),
+
+	timelinedata.NewUpdateTimelineByIDRepositoryImpl,
+	wire.Bind(new(timelinedomain.UpdateTimelineByIDRepository), new(*timelinedata.UpdateTimelineByIDRepositoryImpl)),
+
+	timelinedata.NewDeleteTimelineRepositoryImpl,
+	wire.Bind(new(timelinedomain.DeleteTimelineRepository), new(*timelinedata.DeleteTimelineRepositoryImpl)),
+)
+
 // User UseCase Set
 var UserUseCaseSet = wire.NewSet(
 	user_usecase.NewCreateUserUseCase,
@@ -110,6 +131,15 @@ var WorkerUseCaseSet = wire.NewSet(
 	worker_usecase.NewDeleteWorkerUseCase,
 )
 
+// Timeline UseCase Set
+var TimelineUseCaseSet = wire.NewSet(
+	timeline_usecase.NewCreateTimelineUseCase,
+	timeline_usecase.NewGetAllTimelinesUseCase,
+	timeline_usecase.NewGetTimelineByIDUseCase,
+	timeline_usecase.NewUpdateTimelineByIDUseCase,
+	timeline_usecase.NewDeleteTimelineUseCase,
+)
+
 // Infra Set
 var InfraSet = wire.NewSet(
 	database.ProvideDatabase,
@@ -123,6 +153,7 @@ var WebSet = wire.NewSet(
 	handlers.NewAuthHandler,
 	handlers.NewPostHandler,
 	handlers.NewWorkerHandler,
+	handlers.NewTimelineHandler,
 	handlers.NewHealthHandler,
 	middlewares.NewAuthMiddleware,
 	routes.NewRouter,
@@ -159,9 +190,11 @@ func InitializeApp(cfg *config.Config) (*App, error) {
 		UserRepositorySet,
 		PostRepositorySet,
 		WorkerRepositorySet,
+		TimelineRepositorySet,
 		UserUseCaseSet,
 		PostUseCaseSet,
 		WorkerUseCaseSet,
+		TimelineUseCaseSet,
 		WebSet,
 		wire.Struct(new(App), "Server", "DB"),
 	)

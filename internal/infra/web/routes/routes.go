@@ -9,12 +9,13 @@ import (
 )
 
 type Router struct {
-	UserHandler    *handlers.UserHandler
-	AuthHandler    *handlers.AuthHandler
-	PostHandler    *handlers.PostHandler
-	WorkerHandler  *handlers.WorkerHandler
-	HealthHandler  *handlers.HealthHandler
-	AuthMiddleware *middlewares.AuthMiddleware
+	UserHandler     *handlers.UserHandler
+	AuthHandler     *handlers.AuthHandler
+	PostHandler     *handlers.PostHandler
+	WorkerHandler   *handlers.WorkerHandler
+	TimelineHandler *handlers.TimelineHandler
+	HealthHandler   *handlers.HealthHandler
+	AuthMiddleware  *middlewares.AuthMiddleware
 }
 
 func NewRouter(
@@ -22,16 +23,18 @@ func NewRouter(
 	authHandler *handlers.AuthHandler,
 	postHandler *handlers.PostHandler,
 	workerHandler *handlers.WorkerHandler,
+	timelineHandler *handlers.TimelineHandler,
 	healthHandler *handlers.HealthHandler,
 	authMiddleware *middlewares.AuthMiddleware,
 ) *Router {
 	return &Router{
-		UserHandler:    userHandler,
-		AuthHandler:    authHandler,
-		PostHandler:    postHandler,
-		WorkerHandler:  workerHandler,
-		HealthHandler:  healthHandler,
-		AuthMiddleware: authMiddleware,
+		UserHandler:     userHandler,
+		AuthHandler:     authHandler,
+		PostHandler:     postHandler,
+		WorkerHandler:   workerHandler,
+		TimelineHandler: timelineHandler,
+		HealthHandler:   healthHandler,
+		AuthMiddleware:  authMiddleware,
 	}
 }
 
@@ -88,6 +91,14 @@ func (rt *Router) Setup() *chi.Mux {
 				r.Get("/{id}", rt.WorkerHandler.GetWorkerByID)
 				r.Put("/{id}", rt.WorkerHandler.UpdateWorker)
 				r.Delete("/{id}", rt.WorkerHandler.DeleteWorker)
+			})
+
+			r.Route("/timelines", func(r chi.Router) {
+				r.Post("/", rt.TimelineHandler.CreateTimeline)
+				r.Get("/", rt.TimelineHandler.GetAllTimelines)
+				r.Get("/{id}", rt.TimelineHandler.GetTimelineByID)
+				r.Put("/{id}", rt.TimelineHandler.UpdateTimeline)
+				r.Delete("/{id}", rt.TimelineHandler.DeleteTimeline)
 			})
 		})
 	})
