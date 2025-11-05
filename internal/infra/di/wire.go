@@ -9,14 +9,17 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/google/wire"
 	"github.com/joaolima7/maconaria_back-end/config"
+	acaciadata "github.com/joaolima7/maconaria_back-end/internal/data/repositories/acacia"
 	postdata "github.com/joaolima7/maconaria_back-end/internal/data/repositories/post"
 	timelinedata "github.com/joaolima7/maconaria_back-end/internal/data/repositories/timeline"
 	userdata "github.com/joaolima7/maconaria_back-end/internal/data/repositories/user"
 	workerdata "github.com/joaolima7/maconaria_back-end/internal/data/repositories/worker"
+	acaciadomain "github.com/joaolima7/maconaria_back-end/internal/domain/repositories/acacia"
 	postdomain "github.com/joaolima7/maconaria_back-end/internal/domain/repositories/post"
 	timelinedomain "github.com/joaolima7/maconaria_back-end/internal/domain/repositories/timeline"
 	userdomain "github.com/joaolima7/maconaria_back-end/internal/domain/repositories/user"
 	workerdomain "github.com/joaolima7/maconaria_back-end/internal/domain/repositories/worker"
+	"github.com/joaolima7/maconaria_back-end/internal/domain/usecases/acacia_usecase"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/usecases/post_usecase"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/usecases/timeline_usecase"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/usecases/user_usecase"
@@ -104,6 +107,24 @@ var TimelineRepositorySet = wire.NewSet(
 	wire.Bind(new(timelinedomain.DeleteTimelineRepository), new(*timelinedata.DeleteTimelineRepositoryImpl)),
 )
 
+// Acacia Repository Set
+var AcaciaRepositorySet = wire.NewSet(
+	acaciadata.NewCreateAcaciaRepositoryImpl,
+	wire.Bind(new(acaciadomain.CreateAcaciaRepository), new(*acaciadata.CreateAcaciaRepositoryImpl)),
+
+	acaciadata.NewGetAllAcaciasRepositoryImpl,
+	wire.Bind(new(acaciadomain.GetAllAcaciasRepository), new(*acaciadata.GetAllAcaciasRepositoryImpl)),
+
+	acaciadata.NewGetAcaciaByIDRepositoryImpl,
+	wire.Bind(new(acaciadomain.GetAcaciaByIDRepository), new(*acaciadata.GetAcaciaByIDRepositoryImpl)),
+
+	acaciadata.NewUpdateAcaciaByIDRepositoryImpl,
+	wire.Bind(new(acaciadomain.UpdateAcaciaByIDRepository), new(*acaciadata.UpdateAcaciaByIDRepositoryImpl)),
+
+	acaciadata.NewDeleteAcaciaRepositoryImpl,
+	wire.Bind(new(acaciadomain.DeleteAcaciaRepository), new(*acaciadata.DeleteAcaciaRepositoryImpl)),
+)
+
 // User UseCase Set
 var UserUseCaseSet = wire.NewSet(
 	user_usecase.NewCreateUserUseCase,
@@ -140,6 +161,15 @@ var TimelineUseCaseSet = wire.NewSet(
 	timeline_usecase.NewDeleteTimelineUseCase,
 )
 
+// Acacia UseCase Set
+var AcaciaUseCaseSet = wire.NewSet(
+	acacia_usecase.NewCreateAcaciaUseCase,
+	acacia_usecase.NewGetAllAcaciasUseCase,
+	acacia_usecase.NewGetAcaciaByIDUseCase,
+	acacia_usecase.NewUpdateAcaciaByIDUseCase,
+	acacia_usecase.NewDeleteAcaciaUseCase,
+)
+
 // Infra Set
 var InfraSet = wire.NewSet(
 	database.ProvideDatabase,
@@ -154,6 +184,7 @@ var WebSet = wire.NewSet(
 	handlers.NewPostHandler,
 	handlers.NewWorkerHandler,
 	handlers.NewTimelineHandler,
+	handlers.NewAcaciaHandler,
 	handlers.NewHealthHandler,
 	middlewares.NewAuthMiddleware,
 	routes.NewRouter,
@@ -191,10 +222,12 @@ func InitializeApp(cfg *config.Config) (*App, error) {
 		PostRepositorySet,
 		WorkerRepositorySet,
 		TimelineRepositorySet,
+		AcaciaRepositorySet,
 		UserUseCaseSet,
 		PostUseCaseSet,
 		WorkerUseCaseSet,
 		TimelineUseCaseSet,
+		AcaciaUseCaseSet,
 		WebSet,
 		wire.Struct(new(App), "Server", "DB"),
 	)

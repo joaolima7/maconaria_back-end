@@ -11,14 +11,17 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/google/wire"
 	"github.com/joaolima7/maconaria_back-end/config"
+	"github.com/joaolima7/maconaria_back-end/internal/data/repositories/acacia"
 	"github.com/joaolima7/maconaria_back-end/internal/data/repositories/post"
 	"github.com/joaolima7/maconaria_back-end/internal/data/repositories/timeline"
 	"github.com/joaolima7/maconaria_back-end/internal/data/repositories/user"
 	"github.com/joaolima7/maconaria_back-end/internal/data/repositories/worker"
+	acacia2 "github.com/joaolima7/maconaria_back-end/internal/domain/repositories/acacia"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/repositories/post"
 	timeline2 "github.com/joaolima7/maconaria_back-end/internal/domain/repositories/timeline"
 	user2 "github.com/joaolima7/maconaria_back-end/internal/domain/repositories/user"
 	worker2 "github.com/joaolima7/maconaria_back-end/internal/domain/repositories/worker"
+	"github.com/joaolima7/maconaria_back-end/internal/domain/usecases/acacia_usecase"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/usecases/post_usecase"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/usecases/timeline_usecase"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/usecases/user_usecase"
@@ -86,9 +89,20 @@ func InitializeApp(cfg *config.Config) (*App, error) {
 	deleteTimelineRepositoryImpl := timeline.NewDeleteTimelineRepositoryImpl(queries)
 	deleteTimelineUseCase := timeline_usecase.NewDeleteTimelineUseCase(deleteTimelineRepositoryImpl)
 	timelineHandler := handlers.NewTimelineHandler(createTimelineUseCase, getAllTimelinesUseCase, getTimelineByIDUseCase, updateTimelineByIDUseCase, deleteTimelineUseCase)
+	createAcaciaRepositoryImpl := acacia.NewCreateAcaciaRepositoryImpl(queries)
+	createAcaciaUseCase := acacia_usecase.NewCreateAcaciaUseCase(createAcaciaRepositoryImpl)
+	getAllAcaciasRepositoryImpl := acacia.NewGetAllAcaciasRepositoryImpl(queries)
+	getAllAcaciasUseCase := acacia_usecase.NewGetAllAcaciasUseCase(getAllAcaciasRepositoryImpl)
+	getAcaciaByIDRepositoryImpl := acacia.NewGetAcaciaByIDRepositoryImpl(queries)
+	getAcaciaByIDUseCase := acacia_usecase.NewGetAcaciaByIDUseCase(getAcaciaByIDRepositoryImpl)
+	updateAcaciaByIDRepositoryImpl := acacia.NewUpdateAcaciaByIDRepositoryImpl(queries)
+	updateAcaciaByIDUseCase := acacia_usecase.NewUpdateAcaciaByIDUseCase(updateAcaciaByIDRepositoryImpl)
+	deleteAcaciaRepositoryImpl := acacia.NewDeleteAcaciaRepositoryImpl(queries)
+	deleteAcaciaUseCase := acacia_usecase.NewDeleteAcaciaUseCase(deleteAcaciaRepositoryImpl)
+	acaciaHandler := handlers.NewAcaciaHandler(createAcaciaUseCase, getAllAcaciasUseCase, getAcaciaByIDUseCase, updateAcaciaByIDUseCase, deleteAcaciaUseCase)
 	healthHandler := handlers.NewHealthHandler(db)
 	authMiddleware := middlewares.NewAuthMiddleware(jwtService)
-	router := routes.NewRouter(userHandler, authHandler, postHandler, workerHandler, timelineHandler, healthHandler, authMiddleware)
+	router := routes.NewRouter(userHandler, authHandler, postHandler, workerHandler, timelineHandler, acaciaHandler, healthHandler, authMiddleware)
 	mux := provideChiRouter(router)
 	server := provideServer(mux, cfg)
 	app := &App{
@@ -112,6 +126,9 @@ var WorkerRepositorySet = wire.NewSet(worker.NewCreateWorkerRepositoryImpl, wire
 // Timeline Repository Set
 var TimelineRepositorySet = wire.NewSet(timeline.NewCreateTimelineRepositoryImpl, wire.Bind(new(timeline2.CreateTimelineRepository), new(*timeline.CreateTimelineRepositoryImpl)), timeline.NewGetAllTimelinesRepositoryImpl, wire.Bind(new(timeline2.GetAllTimelinesRepository), new(*timeline.GetAllTimelinesRepositoryImpl)), timeline.NewGetTimelineByIDRepositoryImpl, wire.Bind(new(timeline2.GetTimelineByIDRepository), new(*timeline.GetTimelineByIDRepositoryImpl)), timeline.NewUpdateTimelineByIDRepositoryImpl, wire.Bind(new(timeline2.UpdateTimelineByIDRepository), new(*timeline.UpdateTimelineByIDRepositoryImpl)), timeline.NewDeleteTimelineRepositoryImpl, wire.Bind(new(timeline2.DeleteTimelineRepository), new(*timeline.DeleteTimelineRepositoryImpl)))
 
+// Acacia Repository Set
+var AcaciaRepositorySet = wire.NewSet(acacia.NewCreateAcaciaRepositoryImpl, wire.Bind(new(acacia2.CreateAcaciaRepository), new(*acacia.CreateAcaciaRepositoryImpl)), acacia.NewGetAllAcaciasRepositoryImpl, wire.Bind(new(acacia2.GetAllAcaciasRepository), new(*acacia.GetAllAcaciasRepositoryImpl)), acacia.NewGetAcaciaByIDRepositoryImpl, wire.Bind(new(acacia2.GetAcaciaByIDRepository), new(*acacia.GetAcaciaByIDRepositoryImpl)), acacia.NewUpdateAcaciaByIDRepositoryImpl, wire.Bind(new(acacia2.UpdateAcaciaByIDRepository), new(*acacia.UpdateAcaciaByIDRepositoryImpl)), acacia.NewDeleteAcaciaRepositoryImpl, wire.Bind(new(acacia2.DeleteAcaciaRepository), new(*acacia.DeleteAcaciaRepositoryImpl)))
+
 // User UseCase Set
 var UserUseCaseSet = wire.NewSet(user_usecase.NewCreateUserUseCase, user_usecase.NewGetAllUsersUseCase, user_usecase.NewGetUserByIdUseCase, user_usecase.NewUpdateUserByIdUseCase, user_usecase.NewUpdateUserPasswordUseCase, user_usecase.NewLoginUseCase)
 
@@ -124,11 +141,14 @@ var WorkerUseCaseSet = wire.NewSet(worker_usecase.NewCreateWorkerUseCase, worker
 // Timeline UseCase Set
 var TimelineUseCaseSet = wire.NewSet(timeline_usecase.NewCreateTimelineUseCase, timeline_usecase.NewGetAllTimelinesUseCase, timeline_usecase.NewGetTimelineByIDUseCase, timeline_usecase.NewUpdateTimelineByIDUseCase, timeline_usecase.NewDeleteTimelineUseCase)
 
+// Acacia UseCase Set
+var AcaciaUseCaseSet = wire.NewSet(acacia_usecase.NewCreateAcaciaUseCase, acacia_usecase.NewGetAllAcaciasUseCase, acacia_usecase.NewGetAcaciaByIDUseCase, acacia_usecase.NewUpdateAcaciaByIDUseCase, acacia_usecase.NewDeleteAcaciaUseCase)
+
 // Infra Set
 var InfraSet = wire.NewSet(database.ProvideDatabase, database.ProvideQueries, provideJWTService)
 
 // Web Set
-var WebSet = wire.NewSet(handlers.NewUserHandler, handlers.NewAuthHandler, handlers.NewPostHandler, handlers.NewWorkerHandler, handlers.NewTimelineHandler, handlers.NewHealthHandler, middlewares.NewAuthMiddleware, routes.NewRouter, provideChiRouter,
+var WebSet = wire.NewSet(handlers.NewUserHandler, handlers.NewAuthHandler, handlers.NewPostHandler, handlers.NewWorkerHandler, handlers.NewTimelineHandler, handlers.NewAcaciaHandler, handlers.NewHealthHandler, middlewares.NewAuthMiddleware, routes.NewRouter, provideChiRouter,
 	provideServer,
 )
 

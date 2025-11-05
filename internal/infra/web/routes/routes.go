@@ -14,6 +14,7 @@ type Router struct {
 	PostHandler     *handlers.PostHandler
 	WorkerHandler   *handlers.WorkerHandler
 	TimelineHandler *handlers.TimelineHandler
+	AcaciaHandler   *handlers.AcaciaHandler
 	HealthHandler   *handlers.HealthHandler
 	AuthMiddleware  *middlewares.AuthMiddleware
 }
@@ -24,6 +25,7 @@ func NewRouter(
 	postHandler *handlers.PostHandler,
 	workerHandler *handlers.WorkerHandler,
 	timelineHandler *handlers.TimelineHandler,
+	acaciaHandler *handlers.AcaciaHandler,
 	healthHandler *handlers.HealthHandler,
 	authMiddleware *middlewares.AuthMiddleware,
 ) *Router {
@@ -33,6 +35,7 @@ func NewRouter(
 		PostHandler:     postHandler,
 		WorkerHandler:   workerHandler,
 		TimelineHandler: timelineHandler,
+		AcaciaHandler:   acaciaHandler,
 		HealthHandler:   healthHandler,
 		AuthMiddleware:  authMiddleware,
 	}
@@ -99,6 +102,14 @@ func (rt *Router) Setup() *chi.Mux {
 				r.Get("/{id}", rt.TimelineHandler.GetTimelineByID)
 				r.Put("/{id}", rt.TimelineHandler.UpdateTimeline)
 				r.Delete("/{id}", rt.TimelineHandler.DeleteTimeline)
+			})
+
+			r.Route("/acacias", func(r chi.Router) {
+				r.Post("/", rt.AcaciaHandler.CreateAcacia)
+				r.Get("/", rt.AcaciaHandler.GetAllAcacias)
+				r.Get("/{id}", rt.AcaciaHandler.GetAcaciaByID)
+				r.Put("/{id}", rt.AcaciaHandler.UpdateAcacia)
+				r.Delete("/{id}", rt.AcaciaHandler.DeleteAcacia)
 			})
 		})
 	})

@@ -7,6 +7,7 @@ package db
 import (
 	"database/sql"
 	"database/sql/driver"
+	"encoding/json"
 	"fmt"
 	"time"
 )
@@ -53,6 +54,17 @@ func (ns NullPostsPostType) Value() (driver.Value, error) {
 		return nil, nil
 	}
 	return string(ns.PostsPostType), nil
+}
+
+type Acacia struct {
+	ID          string
+	Name        string
+	Terms       json.RawMessage
+	IsPresident bool
+	Deceased    bool
+	ImageData   []byte
+	CreatedAt   sql.NullTime
+	UpdatedAt   sql.NullTime
 }
 
 type Post struct {
