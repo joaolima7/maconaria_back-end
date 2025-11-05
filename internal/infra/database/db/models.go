@@ -8,6 +8,7 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"fmt"
+	"time"
 )
 
 type PostsPostType string
@@ -86,4 +87,23 @@ type User struct {
 	IsAdmin   bool
 	CreatedAt sql.NullTime
 	UpdatedAt sql.NullTime
+}
+
+type Worker struct {
+	ID                string
+	Number            int32
+	Name              string
+	Registration      string
+	BirthDate         time.Time
+	InitiationDate    time.Time
+	ElevationDate     time.Time
+	ExaltationDate    time.Time
+	AffiliationDate   time.Time
+	InstallationDate  time.Time
+	EmeritusMasonDate sql.NullTime
+	ProvectMasonDate  sql.NullTime
+	ImageData         []byte
+	Deceased          bool
+	CreatedAt         sql.NullTime
+	UpdatedAt         sql.NullTime
 }

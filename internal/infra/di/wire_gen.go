@@ -13,10 +13,13 @@ import (
 	"github.com/joaolima7/maconaria_back-end/config"
 	"github.com/joaolima7/maconaria_back-end/internal/data/repositories/post"
 	"github.com/joaolima7/maconaria_back-end/internal/data/repositories/user"
+	"github.com/joaolima7/maconaria_back-end/internal/data/repositories/worker"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/repositories/post"
 	user2 "github.com/joaolima7/maconaria_back-end/internal/domain/repositories/user"
+	worker2 "github.com/joaolima7/maconaria_back-end/internal/domain/repositories/worker"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/usecases/post_usecase"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/usecases/user_usecase"
+	"github.com/joaolima7/maconaria_back-end/internal/domain/usecases/worker_usecase"
 	"github.com/joaolima7/maconaria_back-end/internal/infra/database"
 	"github.com/joaolima7/maconaria_back-end/internal/infra/web/auth"
 	"github.com/joaolima7/maconaria_back-end/internal/infra/web/handlers"
@@ -58,9 +61,20 @@ func InitializeApp(cfg *config.Config) (*App, error) {
 	deletePostRepositoryImpl := post.NewDeletePostRepositoryImpl(queries)
 	deletePostUseCase := post_usecase.NewDeletePostUseCase(deletePostRepositoryImpl)
 	postHandler := handlers.NewPostHandler(createPostUseCase, getAllPostsUseCase, updatePostByIDUseCase, deletePostUseCase)
+	createWorkerRepositoryImpl := worker.NewCreateWorkerRepositoryImpl(queries)
+	createWorkerUseCase := worker_usecase.NewCreateWorkerUseCase(createWorkerRepositoryImpl)
+	getAllWorkersRepositoryImpl := worker.NewGetAllWorkersRepositoryImpl(queries)
+	getAllWorkersUseCase := worker_usecase.NewGetAllWorkersUseCase(getAllWorkersRepositoryImpl)
+	getWorkerByIDRepositoryImpl := worker.NewGetWorkerByIDRepositoryImpl(queries)
+	getWorkerByIDUseCase := worker_usecase.NewGetWorkerByIDUseCase(getWorkerByIDRepositoryImpl)
+	updateWorkerByIDRepositoryImpl := worker.NewUpdateWorkerByIDRepositoryImpl(queries)
+	updateWorkerByIDUseCase := worker_usecase.NewUpdateWorkerByIDUseCase(updateWorkerByIDRepositoryImpl)
+	deleteWorkerRepositoryImpl := worker.NewDeleteWorkerRepositoryImpl(queries)
+	deleteWorkerUseCase := worker_usecase.NewDeleteWorkerUseCase(deleteWorkerRepositoryImpl)
+	workerHandler := handlers.NewWorkerHandler(createWorkerUseCase, getAllWorkersUseCase, getWorkerByIDUseCase, updateWorkerByIDUseCase, deleteWorkerUseCase)
 	healthHandler := handlers.NewHealthHandler(db)
 	authMiddleware := middlewares.NewAuthMiddleware(jwtService)
-	router := routes.NewRouter(userHandler, authHandler, postHandler, healthHandler, authMiddleware)
+	router := routes.NewRouter(userHandler, authHandler, postHandler, workerHandler, healthHandler, authMiddleware)
 	mux := provideChiRouter(router)
 	server := provideServer(mux, cfg)
 	app := &App{
@@ -78,17 +92,23 @@ var UserRepositorySet = wire.NewSet(user.NewCreateUserRepositoryImpl, wire.Bind(
 // Post Repository Set
 var PostRepositorySet = wire.NewSet(post.NewPostImageRepositoryImpl, wire.Bind(new(post_repository.PostImageRepository), new(*post.PostImageRepositoryImpl)), post.NewCreatePostRepositoryImpl, wire.Bind(new(post_repository.CreatePostRepository), new(*post.CreatePostRepositoryImpl)), post.NewGetAllPostsRepositoryImpl, wire.Bind(new(post_repository.GetAllPostsRepository), new(*post.GetAllPostsRepositoryImpl)), post.NewUpdatePostByIDRepositoryImpl, wire.Bind(new(post_repository.UpdatePostByIDRepository), new(*post.UpdatePostByIDRepositoryImpl)), post.NewDeletePostRepositoryImpl, wire.Bind(new(post_repository.DeletePostRepository), new(*post.DeletePostRepositoryImpl)))
 
+// Worker Repository Set
+var WorkerRepositorySet = wire.NewSet(worker.NewCreateWorkerRepositoryImpl, wire.Bind(new(worker2.CreateWorkerRepository), new(*worker.CreateWorkerRepositoryImpl)), worker.NewGetAllWorkersRepositoryImpl, wire.Bind(new(worker2.GetAllWorkersRepository), new(*worker.GetAllWorkersRepositoryImpl)), worker.NewGetWorkerByIDRepositoryImpl, wire.Bind(new(worker2.GetWorkerByIDRepository), new(*worker.GetWorkerByIDRepositoryImpl)), worker.NewUpdateWorkerByIDRepositoryImpl, wire.Bind(new(worker2.UpdateWorkerByIDRepository), new(*worker.UpdateWorkerByIDRepositoryImpl)), worker.NewDeleteWorkerRepositoryImpl, wire.Bind(new(worker2.DeleteWorkerRepository), new(*worker.DeleteWorkerRepositoryImpl)))
+
 // User UseCase Set
 var UserUseCaseSet = wire.NewSet(user_usecase.NewCreateUserUseCase, user_usecase.NewGetAllUsersUseCase, user_usecase.NewGetUserByIdUseCase, user_usecase.NewUpdateUserByIdUseCase, user_usecase.NewUpdateUserPasswordUseCase, user_usecase.NewLoginUseCase)
 
 // Post UseCase Set
 var PostUseCaseSet = wire.NewSet(post_usecase.NewCreatePostUseCase, post_usecase.NewGetAllPostsUseCase, post_usecase.NewUpdatePostByIDUseCase, post_usecase.NewDeletePostUseCase)
 
+// Worker UseCase Set
+var WorkerUseCaseSet = wire.NewSet(worker_usecase.NewCreateWorkerUseCase, worker_usecase.NewGetAllWorkersUseCase, worker_usecase.NewGetWorkerByIDUseCase, worker_usecase.NewUpdateWorkerByIDUseCase, worker_usecase.NewDeleteWorkerUseCase)
+
 // Infra Set
 var InfraSet = wire.NewSet(database.ProvideDatabase, database.ProvideQueries, provideJWTService)
 
 // Web Set
-var WebSet = wire.NewSet(handlers.NewUserHandler, handlers.NewAuthHandler, handlers.NewPostHandler, handlers.NewHealthHandler, middlewares.NewAuthMiddleware, routes.NewRouter, provideChiRouter,
+var WebSet = wire.NewSet(handlers.NewUserHandler, handlers.NewAuthHandler, handlers.NewPostHandler, handlers.NewWorkerHandler, handlers.NewHealthHandler, middlewares.NewAuthMiddleware, routes.NewRouter, provideChiRouter,
 	provideServer,
 )
 

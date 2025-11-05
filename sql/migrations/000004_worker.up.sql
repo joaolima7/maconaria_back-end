@@ -1,0 +1,21 @@
+CREATE TABLE IF NOT EXISTS workers (
+    id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
+    number INT NOT NULL UNIQUE,
+    name VARCHAR(255) NOT NULL,
+    registration VARCHAR(100) NOT NULL UNIQUE,
+    birth_date DATE NOT NULL,
+    initiation_date DATE NOT NULL,
+    elevation_date DATE NOT NULL,
+    exaltation_date DATE NOT NULL,
+    affiliation_date DATE NOT NULL,
+    installation_date DATE NOT NULL,
+    emeritus_mason_date DATE,
+    provect_mason_date DATE,
+    image_data LONGBLOB NOT NULL,
+    deceased BOOLEAN NOT NULL DEFAULT false,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_workers_number (number),
+    INDEX idx_workers_name (name),
+    INDEX idx_workers_deceased (deceased)
+);

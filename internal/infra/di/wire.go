@@ -11,10 +11,13 @@ import (
 	"github.com/joaolima7/maconaria_back-end/config"
 	postdata "github.com/joaolima7/maconaria_back-end/internal/data/repositories/post"
 	userdata "github.com/joaolima7/maconaria_back-end/internal/data/repositories/user"
+	workerdata "github.com/joaolima7/maconaria_back-end/internal/data/repositories/worker"
 	postdomain "github.com/joaolima7/maconaria_back-end/internal/domain/repositories/post"
 	userdomain "github.com/joaolima7/maconaria_back-end/internal/domain/repositories/user"
+	workerdomain "github.com/joaolima7/maconaria_back-end/internal/domain/repositories/worker"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/usecases/post_usecase"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/usecases/user_usecase"
+	"github.com/joaolima7/maconaria_back-end/internal/domain/usecases/worker_usecase"
 	"github.com/joaolima7/maconaria_back-end/internal/infra/database"
 	"github.com/joaolima7/maconaria_back-end/internal/infra/web/auth"
 	"github.com/joaolima7/maconaria_back-end/internal/infra/web/handlers"
@@ -46,11 +49,9 @@ var UserRepositorySet = wire.NewSet(
 
 // Post Repository Set
 var PostRepositorySet = wire.NewSet(
-	// PostImage Repository (usado por outros)
 	postdata.NewPostImageRepositoryImpl,
 	wire.Bind(new(postdomain.PostImageRepository), new(*postdata.PostImageRepositoryImpl)),
 
-	// Post Repositories
 	postdata.NewCreatePostRepositoryImpl,
 	wire.Bind(new(postdomain.CreatePostRepository), new(*postdata.CreatePostRepositoryImpl)),
 
@@ -62,6 +63,24 @@ var PostRepositorySet = wire.NewSet(
 
 	postdata.NewDeletePostRepositoryImpl,
 	wire.Bind(new(postdomain.DeletePostRepository), new(*postdata.DeletePostRepositoryImpl)),
+)
+
+// Worker Repository Set
+var WorkerRepositorySet = wire.NewSet(
+	workerdata.NewCreateWorkerRepositoryImpl,
+	wire.Bind(new(workerdomain.CreateWorkerRepository), new(*workerdata.CreateWorkerRepositoryImpl)),
+
+	workerdata.NewGetAllWorkersRepositoryImpl,
+	wire.Bind(new(workerdomain.GetAllWorkersRepository), new(*workerdata.GetAllWorkersRepositoryImpl)),
+
+	workerdata.NewGetWorkerByIDRepositoryImpl,
+	wire.Bind(new(workerdomain.GetWorkerByIDRepository), new(*workerdata.GetWorkerByIDRepositoryImpl)),
+
+	workerdata.NewUpdateWorkerByIDRepositoryImpl,
+	wire.Bind(new(workerdomain.UpdateWorkerByIDRepository), new(*workerdata.UpdateWorkerByIDRepositoryImpl)),
+
+	workerdata.NewDeleteWorkerRepositoryImpl,
+	wire.Bind(new(workerdomain.DeleteWorkerRepository), new(*workerdata.DeleteWorkerRepositoryImpl)),
 )
 
 // User UseCase Set
@@ -82,6 +101,15 @@ var PostUseCaseSet = wire.NewSet(
 	post_usecase.NewDeletePostUseCase,
 )
 
+// Worker UseCase Set
+var WorkerUseCaseSet = wire.NewSet(
+	worker_usecase.NewCreateWorkerUseCase,
+	worker_usecase.NewGetAllWorkersUseCase,
+	worker_usecase.NewGetWorkerByIDUseCase,
+	worker_usecase.NewUpdateWorkerByIDUseCase,
+	worker_usecase.NewDeleteWorkerUseCase,
+)
+
 // Infra Set
 var InfraSet = wire.NewSet(
 	database.ProvideDatabase,
@@ -94,6 +122,7 @@ var WebSet = wire.NewSet(
 	handlers.NewUserHandler,
 	handlers.NewAuthHandler,
 	handlers.NewPostHandler,
+	handlers.NewWorkerHandler,
 	handlers.NewHealthHandler,
 	middlewares.NewAuthMiddleware,
 	routes.NewRouter,
@@ -129,8 +158,10 @@ func InitializeApp(cfg *config.Config) (*App, error) {
 		InfraSet,
 		UserRepositorySet,
 		PostRepositorySet,
+		WorkerRepositorySet,
 		UserUseCaseSet,
 		PostUseCaseSet,
+		WorkerUseCaseSet,
 		WebSet,
 		wire.Struct(new(App), "Server", "DB"),
 	)
