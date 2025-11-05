@@ -11,6 +11,7 @@ import (
 type Router struct {
 	UserHandler    *handlers.UserHandler
 	AuthHandler    *handlers.AuthHandler
+	PostHandler    *handlers.PostHandler
 	HealthHandler  *handlers.HealthHandler
 	AuthMiddleware *middlewares.AuthMiddleware
 }
@@ -18,12 +19,14 @@ type Router struct {
 func NewRouter(
 	userHandler *handlers.UserHandler,
 	authHandler *handlers.AuthHandler,
+	postHandler *handlers.PostHandler,
 	healthHandler *handlers.HealthHandler,
 	authMiddleware *middlewares.AuthMiddleware,
 ) *Router {
 	return &Router{
 		UserHandler:    userHandler,
 		AuthHandler:    authHandler,
+		PostHandler:    postHandler,
 		HealthHandler:  healthHandler,
 		AuthMiddleware: authMiddleware,
 	}
@@ -67,6 +70,13 @@ func (rt *Router) Setup() *chi.Mux {
 				r.Post("/", rt.UserHandler.CreateUser)
 				r.Put("/{id}", rt.UserHandler.UpdateUser)
 				r.Patch("/{id}/password", rt.UserHandler.UpdateUserPassword)
+			})
+
+			r.Route("/posts", func(r chi.Router) {
+				r.Post("/", rt.PostHandler.CreatePost)
+				r.Get("/", rt.PostHandler.GetAllPosts)
+				r.Put("/{id}", rt.PostHandler.UpdatePost)
+				r.Delete("/{id}", rt.PostHandler.DeletePost)
 			})
 		})
 	})

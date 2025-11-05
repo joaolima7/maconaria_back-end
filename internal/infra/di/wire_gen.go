@@ -11,8 +11,11 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/google/wire"
 	"github.com/joaolima7/maconaria_back-end/config"
+	"github.com/joaolima7/maconaria_back-end/internal/data/repositories/post"
 	"github.com/joaolima7/maconaria_back-end/internal/data/repositories/user"
+	"github.com/joaolima7/maconaria_back-end/internal/domain/repositories/post"
 	user2 "github.com/joaolima7/maconaria_back-end/internal/domain/repositories/user"
+	"github.com/joaolima7/maconaria_back-end/internal/domain/usecases/post_usecase"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/usecases/user_usecase"
 	"github.com/joaolima7/maconaria_back-end/internal/infra/database"
 	"github.com/joaolima7/maconaria_back-end/internal/infra/web/auth"
@@ -24,7 +27,6 @@ import (
 
 // Injectors from wire.go:
 
-// InitializeApp injeta todas as dependências e retorna App com cleanup
 func InitializeApp(cfg *config.Config) (*App, error) {
 	db, err := database.ProvideDatabase(cfg)
 	if err != nil {
@@ -46,9 +48,19 @@ func InitializeApp(cfg *config.Config) (*App, error) {
 	jwtService := provideJWTService(cfg)
 	loginUseCase := user_usecase.NewLoginUseCase(getUserByEmailRepositoryImpl, jwtService)
 	authHandler := handlers.NewAuthHandler(loginUseCase)
+	postImageRepositoryImpl := post.NewPostImageRepositoryImpl(queries)
+	createPostRepositoryImpl := post.NewCreatePostRepositoryImpl(queries, postImageRepositoryImpl)
+	createPostUseCase := post_usecase.NewCreatePostUseCase(createPostRepositoryImpl, getUserByIdRepositoryImpl)
+	getAllPostsRepositoryImpl := post.NewGetAllPostsRepositoryImpl(queries, postImageRepositoryImpl)
+	getAllPostsUseCase := post_usecase.NewGetAllPostsUseCase(getAllPostsRepositoryImpl)
+	updatePostByIDRepositoryImpl := post.NewUpdatePostByIDRepositoryImpl(queries, postImageRepositoryImpl)
+	updatePostByIDUseCase := post_usecase.NewUpdatePostByIDUseCase(updatePostByIDRepositoryImpl)
+	deletePostRepositoryImpl := post.NewDeletePostRepositoryImpl(queries)
+	deletePostUseCase := post_usecase.NewDeletePostUseCase(deletePostRepositoryImpl)
+	postHandler := handlers.NewPostHandler(createPostUseCase, getAllPostsUseCase, updatePostByIDUseCase, deletePostUseCase)
 	healthHandler := handlers.NewHealthHandler(db)
 	authMiddleware := middlewares.NewAuthMiddleware(jwtService)
-	router := routes.NewRouter(userHandler, authHandler, healthHandler, authMiddleware)
+	router := routes.NewRouter(userHandler, authHandler, postHandler, healthHandler, authMiddleware)
 	mux := provideChiRouter(router)
 	server := provideServer(mux, cfg)
 	app := &App{
@@ -60,42 +72,43 @@ func InitializeApp(cfg *config.Config) (*App, error) {
 
 // wire.go:
 
-// UserRepositorySet agrupa todos os providers de repositórios de user
-var UserRepositorySet = wire.NewSet(user.NewCreateUserRepositoryImpl, wire.Bind(new(user2.CreateUserRepository), new(*user.CreateUserRepositoryImpl)), user.NewGetAllUsersRepositoryImpl, wire.Bind(new(user2.GetAllUsersRepository), new(*user.GetAllUsersRepositoryImpl)), user.NewGetUserByEmailRepositoryImpl, wire.Bind(new(user2.GetUserByEmailRepository), new(*user.GetUserByEmailRepositoryImpl)), user.NewUpdateUserByIDRepositoryImpl, wire.Bind(new(user2.UpdateUserByIDRepository), new(*user.UpdateUserByIDRepositoryImpl)), user.NewUpdateUserPasswordRepositoryImpl, wire.Bind(new(user2.UpdateUserPasswordRepository), new(*user.UpdateUserPasswordRepositoryImpl)), user.NewGetUserByIdRepositoryImpl, wire.Bind(new(user2.GetUserByIdRepository), new(*user.GetUserByIdRepositoryImpl)))
+// User Repository Set
+var UserRepositorySet = wire.NewSet(user.NewCreateUserRepositoryImpl, wire.Bind(new(user2.CreateUserRepository), new(*user.CreateUserRepositoryImpl)), user.NewGetAllUsersRepositoryImpl, wire.Bind(new(user2.GetAllUsersRepository), new(*user.GetAllUsersRepositoryImpl)), user.NewGetUserByEmailRepositoryImpl, wire.Bind(new(user2.GetUserByEmailRepository), new(*user.GetUserByEmailRepositoryImpl)), user.NewGetUserByIdRepositoryImpl, wire.Bind(new(user2.GetUserByIdRepository), new(*user.GetUserByIdRepositoryImpl)), user.NewUpdateUserByIDRepositoryImpl, wire.Bind(new(user2.UpdateUserByIDRepository), new(*user.UpdateUserByIDRepositoryImpl)), user.NewUpdateUserPasswordRepositoryImpl, wire.Bind(new(user2.UpdateUserPasswordRepository), new(*user.UpdateUserPasswordRepositoryImpl)))
 
-// UserUseCaseSet agrupa todos os use cases de user
-var UserUseCaseSet = wire.NewSet(user_usecase.NewCreateUserUseCase, user_usecase.NewGetAllUsersUseCase, user_usecase.NewUpdateUserByIdUseCase, user_usecase.NewUpdateUserPasswordUseCase, user_usecase.NewGetUserByIdUseCase, user_usecase.NewLoginUseCase)
+// Post Repository Set
+var PostRepositorySet = wire.NewSet(post.NewPostImageRepositoryImpl, wire.Bind(new(post_repository.PostImageRepository), new(*post.PostImageRepositoryImpl)), post.NewCreatePostRepositoryImpl, wire.Bind(new(post_repository.CreatePostRepository), new(*post.CreatePostRepositoryImpl)), post.NewGetAllPostsRepositoryImpl, wire.Bind(new(post_repository.GetAllPostsRepository), new(*post.GetAllPostsRepositoryImpl)), post.NewUpdatePostByIDRepositoryImpl, wire.Bind(new(post_repository.UpdatePostByIDRepository), new(*post.UpdatePostByIDRepositoryImpl)), post.NewDeletePostRepositoryImpl, wire.Bind(new(post_repository.DeletePostRepository), new(*post.DeletePostRepositoryImpl)))
 
-// InfraSet agrupa providers de infraestrutura
+// User UseCase Set
+var UserUseCaseSet = wire.NewSet(user_usecase.NewCreateUserUseCase, user_usecase.NewGetAllUsersUseCase, user_usecase.NewGetUserByIdUseCase, user_usecase.NewUpdateUserByIdUseCase, user_usecase.NewUpdateUserPasswordUseCase, user_usecase.NewLoginUseCase)
+
+// Post UseCase Set
+var PostUseCaseSet = wire.NewSet(post_usecase.NewCreatePostUseCase, post_usecase.NewGetAllPostsUseCase, post_usecase.NewUpdatePostByIDUseCase, post_usecase.NewDeletePostUseCase)
+
+// Infra Set
 var InfraSet = wire.NewSet(database.ProvideDatabase, database.ProvideQueries, provideJWTService)
 
-// WebSet agrupa providers da camada web
-var WebSet = wire.NewSet(handlers.NewUserHandler, handlers.NewAuthHandler, handlers.NewHealthHandler, middlewares.NewAuthMiddleware, routes.NewRouter, provideChiRouter,
+// Web Set
+var WebSet = wire.NewSet(handlers.NewUserHandler, handlers.NewAuthHandler, handlers.NewPostHandler, handlers.NewHealthHandler, middlewares.NewAuthMiddleware, routes.NewRouter, provideChiRouter,
 	provideServer,
 )
 
-// provideJWTService cria instância do serviço JWT
 func provideJWTService(cfg *config.Config) *auth.JWTService {
 	return auth.NewJWTService(cfg.JWTSecret, cfg.GetJWTDuration())
 }
 
-// provideChiRouter configura o router Chi
 func provideChiRouter(router *routes.Router) *chi.Mux {
 	return router.Setup()
 }
 
-// provideServer cria instância do servidor
 func provideServer(router *chi.Mux, cfg *config.Config) *server.Server {
 	return server.NewServer(router, cfg.ServerPort)
 }
 
-// App agrupa servidor e banco para gerenciar ciclo de vida
 type App struct {
 	Server *server.Server
 	DB     *sql.DB
 }
 
-// Cleanup fecha a conexão do banco
 func (a *App) Cleanup() {
 	if a.DB != nil {
 		a.DB.Close()
