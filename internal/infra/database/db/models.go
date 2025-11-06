@@ -12,6 +12,49 @@ import (
 	"time"
 )
 
+type LibrariesDegree string
+
+const (
+	LibrariesDegreeApprentice LibrariesDegree = "apprentice"
+	LibrariesDegreeCompanion  LibrariesDegree = "companion"
+	LibrariesDegreeMaster     LibrariesDegree = "master"
+)
+
+func (e *LibrariesDegree) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = LibrariesDegree(s)
+	case string:
+		*e = LibrariesDegree(s)
+	default:
+		return fmt.Errorf("unsupported scan type for LibrariesDegree: %T", src)
+	}
+	return nil
+}
+
+type NullLibrariesDegree struct {
+	LibrariesDegree LibrariesDegree
+	Valid           bool // Valid is true if LibrariesDegree is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullLibrariesDegree) Scan(value interface{}) error {
+	if value == nil {
+		ns.LibrariesDegree, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.LibrariesDegree.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullLibrariesDegree) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.LibrariesDegree), nil
+}
+
 type PostsPostType string
 
 const (
@@ -108,6 +151,18 @@ type Acacia struct {
 	ImageData   []byte
 	CreatedAt   sql.NullTime
 	UpdatedAt   sql.NullTime
+}
+
+type Library struct {
+	ID               string
+	Title            string
+	SmallDescription string
+	Degree           LibrariesDegree
+	FileData         sql.NullString
+	CoverData        sql.NullString
+	Link             sql.NullString
+	CreatedAt        sql.NullTime
+	UpdatedAt        sql.NullTime
 }
 
 type Post struct {

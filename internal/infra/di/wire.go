@@ -10,16 +10,19 @@ import (
 	"github.com/google/wire"
 	"github.com/joaolima7/maconaria_back-end/config"
 	acaciadata "github.com/joaolima7/maconaria_back-end/internal/data/repositories/acacia"
+	librarydata "github.com/joaolima7/maconaria_back-end/internal/data/repositories/library"
 	postdata "github.com/joaolima7/maconaria_back-end/internal/data/repositories/post"
 	timelinedata "github.com/joaolima7/maconaria_back-end/internal/data/repositories/timeline"
 	userdata "github.com/joaolima7/maconaria_back-end/internal/data/repositories/user"
 	workerdata "github.com/joaolima7/maconaria_back-end/internal/data/repositories/worker"
 	acaciadomain "github.com/joaolima7/maconaria_back-end/internal/domain/repositories/acacia"
+	librarydomain "github.com/joaolima7/maconaria_back-end/internal/domain/repositories/library"
 	postdomain "github.com/joaolima7/maconaria_back-end/internal/domain/repositories/post"
 	timelinedomain "github.com/joaolima7/maconaria_back-end/internal/domain/repositories/timeline"
 	userdomain "github.com/joaolima7/maconaria_back-end/internal/domain/repositories/user"
 	workerdomain "github.com/joaolima7/maconaria_back-end/internal/domain/repositories/worker"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/usecases/acacia_usecase"
+	"github.com/joaolima7/maconaria_back-end/internal/domain/usecases/library_usecase"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/usecases/post_usecase"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/usecases/timeline_usecase"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/usecases/user_usecase"
@@ -128,6 +131,26 @@ var AcaciaRepositorySet = wire.NewSet(
 	wire.Bind(new(acaciadomain.DeleteAcaciaRepository), new(*acaciadata.DeleteAcaciaRepositoryImpl)),
 )
 
+var LibraryRepositorySet = wire.NewSet(
+	librarydata.NewCreateLibraryRepositoryImpl,
+	wire.Bind(new(librarydomain.CreateLibraryRepository), new(*librarydata.CreateLibraryRepositoryImpl)),
+
+	librarydata.NewGetAllLibrariesRepositoryImpl,
+	wire.Bind(new(librarydomain.GetAllLibrariesRepository), new(*librarydata.GetAllLibrariesRepositoryImpl)),
+
+	librarydata.NewGetLibraryByIDRepositoryImpl,
+	wire.Bind(new(librarydomain.GetLibraryByIDRepository), new(*librarydata.GetLibraryByIDRepositoryImpl)),
+
+	librarydata.NewGetLibrariesByDegreeRepositoryImpl,
+	wire.Bind(new(librarydomain.GetLibrariesByDegreeRepository), new(*librarydata.GetLibrariesByDegreeRepositoryImpl)),
+
+	librarydata.NewUpdateLibraryByIDRepositoryImpl,
+	wire.Bind(new(librarydomain.UpdateLibraryByIDRepository), new(*librarydata.UpdateLibraryByIDRepositoryImpl)),
+
+	librarydata.NewDeleteLibraryRepositoryImpl,
+	wire.Bind(new(librarydomain.DeleteLibraryRepository), new(*librarydata.DeleteLibraryRepositoryImpl)),
+)
+
 // User UseCase Set
 var UserUseCaseSet = wire.NewSet(
 	user_usecase.NewCreateUserUseCase,
@@ -173,6 +196,15 @@ var AcaciaUseCaseSet = wire.NewSet(
 	acacia_usecase.NewDeleteAcaciaUseCase,
 )
 
+var LibraryUseCaseSet = wire.NewSet(
+	library_usecase.NewCreateLibraryUseCase,
+	library_usecase.NewGetAllLibrariesUseCase,
+	library_usecase.NewGetLibraryByIDUseCase,
+	library_usecase.NewGetLibrariesByDegreeUseCase,
+	library_usecase.NewUpdateLibraryByIDUseCase,
+	library_usecase.NewDeleteLibraryUseCase,
+)
+
 // Infra Set
 var InfraSet = wire.NewSet(
 	database.ProvideDatabase,
@@ -188,6 +220,7 @@ var WebSet = wire.NewSet(
 	handlers.NewWorkerHandler,
 	handlers.NewTimelineHandler,
 	handlers.NewAcaciaHandler,
+	handlers.NewLibraryHandler,
 	handlers.NewHealthHandler,
 	middlewares.NewAuthMiddleware,
 	routes.NewRouter,
@@ -226,11 +259,13 @@ func InitializeApp(cfg *config.Config) (*App, error) {
 		WorkerRepositorySet,
 		TimelineRepositorySet,
 		AcaciaRepositorySet,
+		LibraryRepositorySet,
 		UserUseCaseSet,
 		PostUseCaseSet,
 		WorkerUseCaseSet,
 		TimelineUseCaseSet,
 		AcaciaUseCaseSet,
+		LibraryUseCaseSet,
 		WebSet,
 		wire.Struct(new(App), "Server", "DB"),
 	)

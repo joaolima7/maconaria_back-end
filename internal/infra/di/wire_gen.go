@@ -12,16 +12,19 @@ import (
 	"github.com/google/wire"
 	"github.com/joaolima7/maconaria_back-end/config"
 	"github.com/joaolima7/maconaria_back-end/internal/data/repositories/acacia"
+	"github.com/joaolima7/maconaria_back-end/internal/data/repositories/library"
 	"github.com/joaolima7/maconaria_back-end/internal/data/repositories/post"
 	"github.com/joaolima7/maconaria_back-end/internal/data/repositories/timeline"
 	"github.com/joaolima7/maconaria_back-end/internal/data/repositories/user"
 	"github.com/joaolima7/maconaria_back-end/internal/data/repositories/worker"
 	acacia2 "github.com/joaolima7/maconaria_back-end/internal/domain/repositories/acacia"
+	library2 "github.com/joaolima7/maconaria_back-end/internal/domain/repositories/library"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/repositories/post"
 	timeline2 "github.com/joaolima7/maconaria_back-end/internal/domain/repositories/timeline"
 	user2 "github.com/joaolima7/maconaria_back-end/internal/domain/repositories/user"
 	worker2 "github.com/joaolima7/maconaria_back-end/internal/domain/repositories/worker"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/usecases/acacia_usecase"
+	"github.com/joaolima7/maconaria_back-end/internal/domain/usecases/library_usecase"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/usecases/post_usecase"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/usecases/timeline_usecase"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/usecases/user_usecase"
@@ -100,9 +103,22 @@ func InitializeApp(cfg *config.Config) (*App, error) {
 	deleteAcaciaRepositoryImpl := acacia.NewDeleteAcaciaRepositoryImpl(queries)
 	deleteAcaciaUseCase := acacia_usecase.NewDeleteAcaciaUseCase(deleteAcaciaRepositoryImpl)
 	acaciaHandler := handlers.NewAcaciaHandler(createAcaciaUseCase, getAllAcaciasUseCase, getAcaciaByIDUseCase, updateAcaciaByIDUseCase, deleteAcaciaUseCase)
+	createLibraryRepositoryImpl := library.NewCreateLibraryRepositoryImpl(queries)
+	createLibraryUseCase := library_usecase.NewCreateLibraryUseCase(createLibraryRepositoryImpl)
+	getAllLibrariesRepositoryImpl := library.NewGetAllLibrariesRepositoryImpl(queries)
+	getAllLibrariesUseCase := library_usecase.NewGetAllLibrariesUseCase(getAllLibrariesRepositoryImpl)
+	getLibraryByIDRepositoryImpl := library.NewGetLibraryByIDRepositoryImpl(queries)
+	getLibraryByIDUseCase := library_usecase.NewGetLibraryByIDUseCase(getLibraryByIDRepositoryImpl)
+	getLibrariesByDegreeRepositoryImpl := library.NewGetLibrariesByDegreeRepositoryImpl(queries)
+	getLibrariesByDegreeUseCase := library_usecase.NewGetLibrariesByDegreeUseCase(getLibrariesByDegreeRepositoryImpl)
+	updateLibraryByIDRepositoryImpl := library.NewUpdateLibraryByIDRepositoryImpl(queries)
+	updateLibraryByIDUseCase := library_usecase.NewUpdateLibraryByIDUseCase(updateLibraryByIDRepositoryImpl)
+	deleteLibraryRepositoryImpl := library.NewDeleteLibraryRepositoryImpl(queries)
+	deleteLibraryUseCase := library_usecase.NewDeleteLibraryUseCase(deleteLibraryRepositoryImpl)
+	libraryHandler := handlers.NewLibraryHandler(createLibraryUseCase, getAllLibrariesUseCase, getLibraryByIDUseCase, getLibrariesByDegreeUseCase, updateLibraryByIDUseCase, deleteLibraryUseCase)
 	healthHandler := handlers.NewHealthHandler(db)
 	authMiddleware := middlewares.NewAuthMiddleware(jwtService)
-	router := routes.NewRouter(userHandler, authHandler, postHandler, workerHandler, timelineHandler, acaciaHandler, healthHandler, authMiddleware)
+	router := routes.NewRouter(userHandler, authHandler, postHandler, workerHandler, timelineHandler, acaciaHandler, libraryHandler, healthHandler, authMiddleware)
 	mux := provideChiRouter(router)
 	server := provideServer(mux, cfg)
 	app := &App{
@@ -129,6 +145,8 @@ var TimelineRepositorySet = wire.NewSet(timeline.NewCreateTimelineRepositoryImpl
 // Acacia Repository Set
 var AcaciaRepositorySet = wire.NewSet(acacia.NewCreateAcaciaRepositoryImpl, wire.Bind(new(acacia2.CreateAcaciaRepository), new(*acacia.CreateAcaciaRepositoryImpl)), acacia.NewGetAllAcaciasRepositoryImpl, wire.Bind(new(acacia2.GetAllAcaciasRepository), new(*acacia.GetAllAcaciasRepositoryImpl)), acacia.NewGetAcaciaByIDRepositoryImpl, wire.Bind(new(acacia2.GetAcaciaByIDRepository), new(*acacia.GetAcaciaByIDRepositoryImpl)), acacia.NewUpdateAcaciaByIDRepositoryImpl, wire.Bind(new(acacia2.UpdateAcaciaByIDRepository), new(*acacia.UpdateAcaciaByIDRepositoryImpl)), acacia.NewDeleteAcaciaRepositoryImpl, wire.Bind(new(acacia2.DeleteAcaciaRepository), new(*acacia.DeleteAcaciaRepositoryImpl)))
 
+var LibraryRepositorySet = wire.NewSet(library.NewCreateLibraryRepositoryImpl, wire.Bind(new(library2.CreateLibraryRepository), new(*library.CreateLibraryRepositoryImpl)), library.NewGetAllLibrariesRepositoryImpl, wire.Bind(new(library2.GetAllLibrariesRepository), new(*library.GetAllLibrariesRepositoryImpl)), library.NewGetLibraryByIDRepositoryImpl, wire.Bind(new(library2.GetLibraryByIDRepository), new(*library.GetLibraryByIDRepositoryImpl)), library.NewGetLibrariesByDegreeRepositoryImpl, wire.Bind(new(library2.GetLibrariesByDegreeRepository), new(*library.GetLibrariesByDegreeRepositoryImpl)), library.NewUpdateLibraryByIDRepositoryImpl, wire.Bind(new(library2.UpdateLibraryByIDRepository), new(*library.UpdateLibraryByIDRepositoryImpl)), library.NewDeleteLibraryRepositoryImpl, wire.Bind(new(library2.DeleteLibraryRepository), new(*library.DeleteLibraryRepositoryImpl)))
+
 // User UseCase Set
 var UserUseCaseSet = wire.NewSet(user_usecase.NewCreateUserUseCase, user_usecase.NewGetAllUsersUseCase, user_usecase.NewGetUserByIdUseCase, user_usecase.NewUpdateUserByIdUseCase, user_usecase.NewUpdateUserPasswordUseCase, user_usecase.NewLoginUseCase)
 
@@ -144,11 +162,13 @@ var TimelineUseCaseSet = wire.NewSet(timeline_usecase.NewCreateTimelineUseCase, 
 // Acacia UseCase Set
 var AcaciaUseCaseSet = wire.NewSet(acacia_usecase.NewCreateAcaciaUseCase, acacia_usecase.NewGetAllAcaciasUseCase, acacia_usecase.NewGetAcaciaByIDUseCase, acacia_usecase.NewUpdateAcaciaByIDUseCase, acacia_usecase.NewDeleteAcaciaUseCase)
 
+var LibraryUseCaseSet = wire.NewSet(library_usecase.NewCreateLibraryUseCase, library_usecase.NewGetAllLibrariesUseCase, library_usecase.NewGetLibraryByIDUseCase, library_usecase.NewGetLibrariesByDegreeUseCase, library_usecase.NewUpdateLibraryByIDUseCase, library_usecase.NewDeleteLibraryUseCase)
+
 // Infra Set
 var InfraSet = wire.NewSet(database.ProvideDatabase, database.ProvideQueries, provideJWTService)
 
 // Web Set
-var WebSet = wire.NewSet(handlers.NewUserHandler, handlers.NewAuthHandler, handlers.NewPostHandler, handlers.NewWorkerHandler, handlers.NewTimelineHandler, handlers.NewAcaciaHandler, handlers.NewHealthHandler, middlewares.NewAuthMiddleware, routes.NewRouter, provideChiRouter,
+var WebSet = wire.NewSet(handlers.NewUserHandler, handlers.NewAuthHandler, handlers.NewPostHandler, handlers.NewWorkerHandler, handlers.NewTimelineHandler, handlers.NewAcaciaHandler, handlers.NewLibraryHandler, handlers.NewHealthHandler, middlewares.NewAuthMiddleware, routes.NewRouter, provideChiRouter,
 	provideServer,
 )
 

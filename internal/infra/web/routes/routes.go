@@ -15,6 +15,7 @@ type Router struct {
 	WorkerHandler   *handlers.WorkerHandler
 	TimelineHandler *handlers.TimelineHandler
 	AcaciaHandler   *handlers.AcaciaHandler
+	LibraryHandler  *handlers.LibraryHandler
 	HealthHandler   *handlers.HealthHandler
 	AuthMiddleware  *middlewares.AuthMiddleware
 }
@@ -26,6 +27,7 @@ func NewRouter(
 	workerHandler *handlers.WorkerHandler,
 	timelineHandler *handlers.TimelineHandler,
 	acaciaHandler *handlers.AcaciaHandler,
+	libraryHandler *handlers.LibraryHandler,
 	healthHandler *handlers.HealthHandler,
 	authMiddleware *middlewares.AuthMiddleware,
 ) *Router {
@@ -36,6 +38,7 @@ func NewRouter(
 		WorkerHandler:   workerHandler,
 		TimelineHandler: timelineHandler,
 		AcaciaHandler:   acaciaHandler,
+		LibraryHandler:  libraryHandler,
 		HealthHandler:   healthHandler,
 		AuthMiddleware:  authMiddleware,
 	}
@@ -110,6 +113,15 @@ func (rt *Router) Setup() *chi.Mux {
 				r.Get("/{id}", rt.AcaciaHandler.GetAcaciaByID)
 				r.Put("/{id}", rt.AcaciaHandler.UpdateAcacia)
 				r.Delete("/{id}", rt.AcaciaHandler.DeleteAcacia)
+			})
+
+			r.Route("/libraries", func(r chi.Router) {
+				r.Post("/", rt.LibraryHandler.CreateLibrary)
+				r.Get("/", rt.LibraryHandler.GetAllLibraries)
+				r.Get("/{id}", rt.LibraryHandler.GetLibraryByID)
+				r.Get("/degree/{degree}", rt.LibraryHandler.GetLibrariesByDegree)
+				r.Put("/{id}", rt.LibraryHandler.UpdateLibrary)
+				r.Delete("/{id}", rt.LibraryHandler.DeleteLibrary)
 			})
 		})
 	})
