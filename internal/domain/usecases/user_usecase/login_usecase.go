@@ -21,6 +21,8 @@ type UserDTO struct {
 	ID       string `json:"id"`
 	Name     string `json:"name"`
 	Email    string `json:"email"`
+	CIM      string `json:"cim"`
+	Degree   string `json:"degree"`
 	IsActive bool   `json:"is_active"`
 	IsAdmin  bool   `json:"is_admin"`
 }
@@ -64,6 +66,8 @@ func (uc *LoginUseCase) Execute(input LoginInputDTO) (*LoginOutputDTO, error) {
 			ID:       user.ID,
 			Name:     user.Name,
 			Email:    user.Email,
+			CIM:      user.CIM,
+			Degree:   string(user.Degree),
 			IsActive: user.IsActive,
 			IsAdmin:  user.IsAdmin,
 		},

@@ -11,6 +11,8 @@ type UpdateUserByIdInputDTO struct {
 	ID       string `json:"id"`
 	Name     string `json:"name" validate:"required"`
 	Email    string `json:"email" validate:"required,email"`
+	CIM      string `json:"cim" validate:"required"`
+	Degree   string `json:"degree" validate:"required,oneof=apprentice companion master"`
 	IsActive bool   `json:"is_active"`
 	IsAdmin  bool   `json:"is_admin"`
 }
@@ -19,6 +21,8 @@ type UpdateUserByIdOutputDTO struct {
 	ID       string `json:"id"`
 	Name     string `json:"name"`
 	Email    string `json:"email"`
+	CIM      string `json:"cim"`
+	Degree   string `json:"degree"`
 	IsActive bool   `json:"is_active"`
 	IsAdmin  bool   `json:"is_admin"`
 }
@@ -38,6 +42,8 @@ func (uc *UpdateUserByIdUseCase) Execute(input UpdateUserByIdInputDTO) (*UpdateU
 		ID:        input.ID,
 		Name:      input.Name,
 		Email:     input.Email,
+		CIM:       input.CIM,
+		Degree:    entity.UserDegree(input.Degree),
 		IsActive:  input.IsActive,
 		IsAdmin:   input.IsAdmin,
 		UpdatedAt: time.Now(),
@@ -47,6 +53,12 @@ func (uc *UpdateUserByIdUseCase) Execute(input UpdateUserByIdInputDTO) (*UpdateU
 		return nil, err
 	}
 	if err := user.ValidateEmail(); err != nil {
+		return nil, err
+	}
+	if err := user.ValidateCIM(); err != nil {
+		return nil, err
+	}
+	if err := user.ValidateDegree(); err != nil {
 		return nil, err
 	}
 
@@ -59,6 +71,8 @@ func (uc *UpdateUserByIdUseCase) Execute(input UpdateUserByIdInputDTO) (*UpdateU
 		ID:       updatedUser.ID,
 		Name:     updatedUser.Name,
 		Email:    updatedUser.Email,
+		CIM:      updatedUser.CIM,
+		Degree:   string(updatedUser.Degree),
 		IsActive: updatedUser.IsActive,
 		IsAdmin:  updatedUser.IsAdmin,
 	}, nil

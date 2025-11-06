@@ -11,8 +11,8 @@ import (
 )
 
 const createUser = `-- name: CreateUser :execresult
-INSERT INTO users (id, name, email, password, is_active, is_admin)
-VALUES(?, ?, ?, ?, ?, ?)
+INSERT INTO users (id, name, email, password, cim, degree, is_active, is_admin)
+VALUES(?, ?, ?, ?, ?, ?, ?, ?)
 `
 
 type CreateUserParams struct {
@@ -20,6 +20,8 @@ type CreateUserParams struct {
 	Name     string
 	Email    string
 	Password string
+	Cim      string
+	Degree   UsersDegree
 	IsActive bool
 	IsAdmin  bool
 }
@@ -30,6 +32,8 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (sql.Res
 		arg.Name,
 		arg.Email,
 		arg.Password,
+		arg.Cim,
+		arg.Degree,
 		arg.IsActive,
 		arg.IsAdmin,
 	)
@@ -45,7 +49,7 @@ func (q *Queries) DeleteUser(ctx context.Context, id string) error {
 }
 
 const getAllUsers = `-- name: GetAllUsers :many
-SELECT id, name, email, password, is_active, is_admin, created_at, updated_at FROM users
+SELECT id, name, email, password, is_active, is_admin, created_at, updated_at, cim, degree FROM users
 `
 
 func (q *Queries) GetAllUsers(ctx context.Context) ([]User, error) {
@@ -66,6 +70,8 @@ func (q *Queries) GetAllUsers(ctx context.Context) ([]User, error) {
 			&i.IsAdmin,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.Cim,
+			&i.Degree,
 		); err != nil {
 			return nil, err
 		}
@@ -80,8 +86,30 @@ func (q *Queries) GetAllUsers(ctx context.Context) ([]User, error) {
 	return items, nil
 }
 
+const getUserByCIM = `-- name: GetUserByCIM :one
+SELECT id, name, email, password, is_active, is_admin, created_at, updated_at, cim, degree FROM users WHERE cim = ?
+`
+
+func (q *Queries) GetUserByCIM(ctx context.Context, cim string) (User, error) {
+	row := q.db.QueryRowContext(ctx, getUserByCIM, cim)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Email,
+		&i.Password,
+		&i.IsActive,
+		&i.IsAdmin,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Cim,
+		&i.Degree,
+	)
+	return i, err
+}
+
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, name, email, password, is_active, is_admin, created_at, updated_at FROM users WHERE email = ?
+SELECT id, name, email, password, is_active, is_admin, created_at, updated_at, cim, degree FROM users WHERE email = ?
 `
 
 func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error) {
@@ -96,12 +124,14 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 		&i.IsAdmin,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Cim,
+		&i.Degree,
 	)
 	return i, err
 }
 
 const getUserByID = `-- name: GetUserByID :one
-SELECT id, name, email, password, is_active, is_admin, created_at, updated_at FROM users WHERE id = ?
+SELECT id, name, email, password, is_active, is_admin, created_at, updated_at, cim, degree FROM users WHERE id = ?
 `
 
 func (q *Queries) GetUserByID(ctx context.Context, id string) (User, error) {
@@ -116,19 +146,23 @@ func (q *Queries) GetUserByID(ctx context.Context, id string) (User, error) {
 		&i.IsAdmin,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Cim,
+		&i.Degree,
 	)
 	return i, err
 }
 
 const updateUser = `-- name: UpdateUser :execresult
 UPDATE users
-SET name = ?, email = ?, is_active = ?, is_admin = ?
+SET name = ?, email = ?, cim = ?, degree = ?, is_active = ?, is_admin = ?
 WHERE id = ?
 `
 
 type UpdateUserParams struct {
 	Name     string
 	Email    string
+	Cim      string
+	Degree   UsersDegree
 	IsActive bool
 	IsAdmin  bool
 	ID       string
@@ -138,6 +172,8 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (sql.Res
 	return q.db.ExecContext(ctx, updateUser,
 		arg.Name,
 		arg.Email,
+		arg.Cim,
+		arg.Degree,
 		arg.IsActive,
 		arg.IsAdmin,
 		arg.ID,

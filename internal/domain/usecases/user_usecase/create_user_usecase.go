@@ -12,6 +12,8 @@ type CreateUserInputDTO struct {
 	Name     string `json:"name" validate:"required"`
 	Email    string `json:"email" validate:"required,email"`
 	Password string `json:"password" validate:"required,min=8"`
+	CIM      string `json:"cim" validate:"required"`
+	Degree   string `json:"degree" validate:"required,oneof=apprentice companion master"`
 	IsAdmin  bool   `json:"is_admin"`
 	IsActive bool   `json:"is_active"`
 }
@@ -20,6 +22,8 @@ type CreateUserOutputDTO struct {
 	ID        string    `json:"id"`
 	Name      string    `json:"name"`
 	Email     string    `json:"email"`
+	CIM       string    `json:"cim"`
+	Degree    string    `json:"degree"`
 	IsAdmin   bool      `json:"is_admin"`
 	IsActive  bool      `json:"is_active"`
 	CreatedAt time.Time `json:"created_at"`
@@ -43,6 +47,8 @@ func (uc *CreateUserUseCase) Execute(input CreateUserInputDTO) (*CreateUserOutpu
 		input.Name,
 		input.Email,
 		input.Password,
+		input.CIM,
+		entity.UserDegree(input.Degree),
 		input.IsActive,
 		input.IsAdmin,
 	)
@@ -59,6 +65,8 @@ func (uc *CreateUserUseCase) Execute(input CreateUserInputDTO) (*CreateUserOutpu
 		ID:        userCreated.ID,
 		Name:      userCreated.Name,
 		Email:     userCreated.Email,
+		CIM:       userCreated.CIM,
+		Degree:    string(userCreated.Degree),
 		IsAdmin:   userCreated.IsAdmin,
 		IsActive:  userCreated.IsActive,
 		CreatedAt: user.CreatedAt,

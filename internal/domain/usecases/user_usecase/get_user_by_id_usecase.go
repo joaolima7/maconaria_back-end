@@ -14,6 +14,8 @@ type GetUserByIdOutputDTO struct {
 	ID        string    `json:"id"`
 	Name      string    `json:"name"`
 	Email     string    `json:"email"`
+	CIM       string    `json:"cim"`
+	Degree    string    `json:"degree"`
 	IsAdmin   bool      `json:"is_admin"`
 	IsActive  bool      `json:"is_active"`
 	CreatedAt time.Time `json:"created_at"`
@@ -40,6 +42,8 @@ func (uc *GetUserByIdUseCase) Execute(input GetUserByIdInputDTO) (*GetUserByIdOu
 		ID:        user.ID,
 		Name:      user.Name,
 		Email:     user.Email,
+		CIM:       user.CIM,
+		Degree:    string(user.Degree),
 		IsAdmin:   user.IsAdmin,
 		IsActive:  user.IsActive,
 		CreatedAt: user.CreatedAt,

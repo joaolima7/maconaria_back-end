@@ -56,6 +56,49 @@ func (ns NullPostsPostType) Value() (driver.Value, error) {
 	return string(ns.PostsPostType), nil
 }
 
+type UsersDegree string
+
+const (
+	UsersDegreeApprentice UsersDegree = "apprentice"
+	UsersDegreeCompanion  UsersDegree = "companion"
+	UsersDegreeMaster     UsersDegree = "master"
+)
+
+func (e *UsersDegree) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = UsersDegree(s)
+	case string:
+		*e = UsersDegree(s)
+	default:
+		return fmt.Errorf("unsupported scan type for UsersDegree: %T", src)
+	}
+	return nil
+}
+
+type NullUsersDegree struct {
+	UsersDegree UsersDegree
+	Valid       bool // Valid is true if UsersDegree is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullUsersDegree) Scan(value interface{}) error {
+	if value == nil {
+		ns.UsersDegree, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.UsersDegree.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullUsersDegree) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.UsersDegree), nil
+}
+
 type Acacia struct {
 	ID          string
 	Name        string
@@ -108,6 +151,8 @@ type User struct {
 	IsAdmin   bool
 	CreatedAt sql.NullTime
 	UpdatedAt sql.NullTime
+	Cim       string
+	Degree    UsersDegree
 }
 
 type Worker struct {

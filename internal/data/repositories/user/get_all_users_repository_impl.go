@@ -30,6 +30,8 @@ func (r *GetAllUsersRepositoryImpl) GetAllUsers() ([]*entity.User, error) {
 			ID:       userDB.ID,
 			Name:     userDB.Name,
 			Email:    userDB.Email,
+			CIM:      userDB.Cim,
+			Degree:   entity.UserDegree(userDB.Degree),
 			IsActive: userDB.IsActive,
 			IsAdmin:  userDB.IsAdmin,
 		}

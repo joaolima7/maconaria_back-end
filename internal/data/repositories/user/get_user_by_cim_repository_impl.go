@@ -5,27 +5,28 @@ import (
 	"database/sql"
 	"errors"
 
+	"github.com/joaolima7/maconaria_back-end/internal/domain/apperrors"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/entity"
 	"github.com/joaolima7/maconaria_back-end/internal/infra/database/db"
 )
 
-type GetUserByEmailRepositoryImpl struct {
+type GetUserByCIMRepositoryImpl struct {
 	queries *db.Queries
 }
 
-func NewGetUserByEmailRepositoryImpl(queries *db.Queries) *GetUserByEmailRepositoryImpl {
-	return &GetUserByEmailRepositoryImpl{queries: queries}
+func NewGetUserByCIMRepositoryImpl(queries *db.Queries) *GetUserByCIMRepositoryImpl {
+	return &GetUserByCIMRepositoryImpl{queries: queries}
 }
 
-func (r *GetUserByEmailRepositoryImpl) GetUserByEmail(email string) (*entity.User, error) {
+func (r *GetUserByCIMRepositoryImpl) GetUserByCIM(cim string) (*entity.User, error) {
 	ctx := context.Background()
 
-	userDB, err := r.queries.GetUserByEmail(ctx, email)
+	userDB, err := r.queries.GetUserByCIM(ctx, cim)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, errors.New("usuário não encontrado")
+			return nil, apperrors.NewNotFoundError("Usuário")
 		}
-		return nil, err
+		return nil, apperrors.WrapDatabaseError(err, "buscar usuário por CIM")
 	}
 
 	return &entity.User{

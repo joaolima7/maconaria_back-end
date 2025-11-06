@@ -6,6 +6,8 @@ type GetAllUsersOutputDTO struct {
 	ID       string `json:"id"`
 	Name     string `json:"name"`
 	Email    string `json:"email"`
+	CIM      string `json:"cim"`
+	Degree   string `json:"degree"`
 	IsActive bool   `json:"is_active"`
 	IsAdmin  bool   `json:"is_admin"`
 }
@@ -33,6 +35,8 @@ func (uc *GetAllUsersUseCase) Execute() ([]*GetAllUsersOutputDTO, error) {
 			ID:       out.ID,
 			Name:     out.Name,
 			Email:    out.Email,
+			CIM:      out.CIM,
+			Degree:   string(out.Degree),
 			IsActive: out.IsActive,
 			IsAdmin:  out.IsAdmin,
 		})

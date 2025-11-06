@@ -19,11 +19,13 @@ func (r *UpdateUserByIDRepositoryImpl) UpdateUserByID(user *entity.User) (*entit
 	ctx := context.Background()
 
 	params := db.UpdateUserParams{
-		ID:       user.ID,
 		Name:     user.Name,
 		Email:    user.Email,
+		Cim:      user.CIM,
+		Degree:   db.UsersDegree(user.Degree),
 		IsActive: user.IsActive,
 		IsAdmin:  user.IsAdmin,
+		ID:       user.ID,
 	}
 
 	_, err := r.queries.UpdateUser(ctx, params)
@@ -40,6 +42,8 @@ func (r *UpdateUserByIDRepositoryImpl) UpdateUserByID(user *entity.User) (*entit
 		ID:       userUpdated.ID,
 		Name:     userUpdated.Name,
 		Email:    userUpdated.Email,
+		CIM:      userUpdated.Cim,
+		Degree:   entity.UserDegree(userUpdated.Degree),
 		IsActive: userUpdated.IsActive,
 		IsAdmin:  userUpdated.IsAdmin,
 	}, nil

@@ -8,11 +8,21 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+type UserDegree string
+
+const (
+	DegreeApprentice UserDegree = "apprentice"
+	DegreeCompanion  UserDegree = "companion"
+	DegreeMaster     UserDegree = "master"
+)
+
 type User struct {
 	ID        string
 	Name      string
 	Email     string
 	Password  string
+	CIM       string
+	Degree    UserDegree
 	IsActive  bool
 	IsAdmin   bool
 	Posts     []*Post
@@ -20,12 +30,14 @@ type User struct {
 	UpdatedAt time.Time
 }
 
-func NewUser(id string, name string, email string, password string, isActive bool, isAdmin bool) (*User, error) {
+func NewUser(id string, name string, email string, password string, cim string, degree UserDegree, isActive bool, isAdmin bool) (*User, error) {
 	user := &User{
 		ID:        id,
 		Name:      name,
 		Email:     email,
 		Password:  password,
+		CIM:       cim,
+		Degree:    degree,
 		IsActive:  isActive,
 		IsAdmin:   isAdmin,
 		CreatedAt: time.Now(),
@@ -36,6 +48,12 @@ func NewUser(id string, name string, email string, password string, isActive boo
 		return nil, err
 	}
 	if err := user.ValidateEmail(); err != nil {
+		return nil, err
+	}
+	if err := user.ValidateCIM(); err != nil {
+		return nil, err
+	}
+	if err := user.ValidateDegree(); err != nil {
 		return nil, err
 	}
 	if err := user.ValidatePassword(password); err != nil {
@@ -78,6 +96,23 @@ func (u *User) ValidateName() error {
 		return apperrors.NewValidationError("nome", "O nome deve ter no mínimo 3 caracteres!")
 	}
 	return nil
+}
+
+func (u *User) ValidateCIM() error {
+	if len(u.CIM) == 0 {
+		return apperrors.NewValidationError("CIM", "O CIM não pode ser vazio!")
+	}
+	return nil
+}
+
+func (u *User) ValidateDegree() error {
+	validDegrees := []UserDegree{DegreeApprentice, DegreeCompanion, DegreeMaster}
+	for _, valid := range validDegrees {
+		if u.Degree == valid {
+			return nil
+		}
+	}
+	return apperrors.NewValidationError("grau", "O grau deve ser 'apprentice', 'companion' ou 'master'!")
 }
 
 func (u *User) HashPassword(password string) error {

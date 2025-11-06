@@ -46,6 +46,9 @@ var UserRepositorySet = wire.NewSet(
 	userdata.NewGetUserByIdRepositoryImpl,
 	wire.Bind(new(userdomain.GetUserByIdRepository), new(*userdata.GetUserByIdRepositoryImpl)),
 
+	userdata.NewGetUserByCIMRepositoryImpl,
+	wire.Bind(new(userdomain.GetUserByCIMRepository), new(*userdata.GetUserByCIMRepositoryImpl)),
+
 	userdata.NewUpdateUserByIDRepositoryImpl,
 	wire.Bind(new(userdomain.UpdateUserByIDRepository), new(*userdata.UpdateUserByIDRepositoryImpl)),
 
