@@ -1,0 +1,25 @@
+# Environment
+/config/.env
+.env
+.env.local
+.env.*.local
+
+# Build / binaries
+/bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+
+# Dependency / vendor
+vendor/
+
+# Logs and temp
+*.log
+tmp/

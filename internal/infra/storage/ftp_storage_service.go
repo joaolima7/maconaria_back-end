@@ -2,11 +2,13 @@ package storage
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"log"
 	"net/url"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/jlaffaye/ftp"
@@ -20,10 +22,11 @@ type FTPStorageService struct {
 	password string
 	basePath string
 	baseURL  string
+	connPool sync.Pool
 }
 
 func NewFTPStorageService(cfg *config.Config) *FTPStorageService {
-	return &FTPStorageService{
+	service := &FTPStorageService{
 		host:     cfg.FTPHost,
 		port:     cfg.FTPPort,
 		user:     cfg.FTPUser,
@@ -31,9 +34,20 @@ func NewFTPStorageService(cfg *config.Config) *FTPStorageService {
 		basePath: cfg.FTPBasePath,
 		baseURL:  cfg.FTPBaseURL,
 	}
+
+	service.connPool.New = func() interface{} {
+		conn, err := service.createConnection()
+		if err != nil {
+			log.Printf("Erro ao criar conexão FTP no pool: %v", err)
+			return nil
+		}
+		return conn
+	}
+
+	return service
 }
 
-func (s *FTPStorageService) connectFTP() (*ftp.ServerConn, error) {
+func (s *FTPStorageService) createConnection() (*ftp.ServerConn, error) {
 	addr := fmt.Sprintf("%s:%s", s.host, s.port)
 
 	conn, err := ftp.Dial(addr, ftp.DialWithTimeout(10*time.Second))
@@ -49,8 +63,26 @@ func (s *FTPStorageService) connectFTP() (*ftp.ServerConn, error) {
 	return conn, nil
 }
 
-func (s *FTPStorageService) ensureDirectoryExists(conn *ftp.ServerConn, dirPath string) error {
+func (s *FTPStorageService) getConnection() (*ftp.ServerConn, error) {
+	if conn := s.connPool.Get(); conn != nil {
+		if ftpConn, ok := conn.(*ftp.ServerConn); ok {
 
+			if err := ftpConn.NoOp(); err == nil {
+				return ftpConn, nil
+			}
+			ftpConn.Quit()
+		}
+	}
+	return s.createConnection()
+}
+
+func (s *FTPStorageService) releaseConnection(conn *ftp.ServerConn) {
+	if conn != nil {
+		s.connPool.Put(conn)
+	}
+}
+
+func (s *FTPStorageService) ensureDirectoryExists(conn *ftp.ServerConn, dirPath string) error {
 	dirPath = strings.TrimSuffix(dirPath, "/")
 
 	err := conn.MakeDir(dirPath)
@@ -58,50 +90,77 @@ func (s *FTPStorageService) ensureDirectoryExists(conn *ftp.ServerConn, dirPath 
 		if !strings.Contains(err.Error(), "550") && !strings.Contains(err.Error(), "exists") {
 			log.Printf("Aviso ao criar diretório %s: %v", dirPath, err)
 		}
-	} else {
-		log.Printf("Diretório criado: %s", dirPath)
 	}
 	return nil
 }
 
 func (s *FTPStorageService) UploadImage(imageData []byte, filename string, folder string) (string, error) {
-	return s.uploadFile(imageData, filename, folder)
+	return s.uploadFile(context.Background(), imageData, filename, folder)
+}
+
+func (s *FTPStorageService) UploadImageWithContext(ctx context.Context, imageData []byte, filename string, folder string) (string, error) {
+	return s.uploadFile(ctx, imageData, filename, folder)
 }
 
 func (s *FTPStorageService) UploadPDF(pdfData []byte, filename string, folder string) (string, error) {
-	return s.uploadFile(pdfData, filename, folder)
+	return s.uploadFile(context.Background(), pdfData, filename, folder)
 }
 
-func (s *FTPStorageService) uploadFile(fileData []byte, filename string, folder string) (string, error) {
-	conn, err := s.connectFTP()
-	if err != nil {
-		return "", err
+func (s *FTPStorageService) uploadFile(ctx context.Context, fileData []byte, filename string, folder string) (string, error) {
+
+	resultChan := make(chan struct {
+		url string
+		err error
+	}, 1)
+
+	go func() {
+		conn, err := s.getConnection()
+		if err != nil {
+			resultChan <- struct {
+				url string
+				err error
+			}{"", err}
+			return
+		}
+		defer s.releaseConnection(conn)
+
+		basePath := strings.TrimSuffix(s.basePath, "/")
+		folder = strings.Trim(folder, "/")
+		folderPath := basePath + "/" + folder
+
+		if err := s.ensureDirectoryExists(conn, folderPath); err != nil {
+			log.Printf("Aviso: não foi possível verificar diretório: %v", err)
+		}
+
+		safeName := filepath.Base(filename)
+		remotePath := folderPath + "/" + safeName
+
+		reader := bytes.NewReader(fileData)
+		if err := conn.Stor(remotePath, reader); err != nil {
+			resultChan <- struct {
+				url string
+				err error
+			}{"", fmt.Errorf("erro ao fazer upload do arquivo: %w", err)}
+			return
+		}
+
+		baseURL := strings.TrimSuffix(s.baseURL, "/")
+		fileURL := baseURL + "/" + folder + "/" + safeName
+
+		log.Printf("Arquivo salvo com sucesso: %s", fileURL)
+
+		resultChan <- struct {
+			url string
+			err error
+		}{fileURL, nil}
+	}()
+
+	select {
+	case result := <-resultChan:
+		return result.url, result.err
+	case <-ctx.Done():
+		return "", fmt.Errorf("upload cancelado: %w", ctx.Err())
 	}
-	defer conn.Quit()
-
-	basePath := strings.TrimSuffix(s.basePath, "/")
-	folder = strings.Trim(folder, "/")
-
-	folderPath := basePath + "/" + folder
-
-	if err := s.ensureDirectoryExists(conn, folderPath); err != nil {
-		log.Printf("Aviso: não foi possível verificar diretório: %v", err)
-	}
-
-	safeName := filepath.Base(filename)
-	remotePath := folderPath + "/" + safeName
-
-	reader := bytes.NewReader(fileData)
-	if err := conn.Stor(remotePath, reader); err != nil {
-		return "", fmt.Errorf("erro ao fazer upload do arquivo: %w", err)
-	}
-
-	baseURL := strings.TrimSuffix(s.baseURL, "/")
-	fileURL := baseURL + "/" + folder + "/" + safeName
-
-	log.Printf("Arquivo salvo com sucesso: %s", fileURL)
-
-	return fileURL, nil
 }
 
 func (s *FTPStorageService) DeleteImage(imageURL string, folder string) error {
@@ -117,11 +176,11 @@ func (s *FTPStorageService) deleteFile(fileURL string, folder string) error {
 		return nil
 	}
 
-	conn, err := s.connectFTP()
+	conn, err := s.getConnection()
 	if err != nil {
 		return err
 	}
-	defer conn.Quit()
+	defer s.releaseConnection(conn)
 
 	filename, err := s.extractFilenameFromURL(fileURL)
 	if err != nil {
@@ -130,7 +189,6 @@ func (s *FTPStorageService) deleteFile(fileURL string, folder string) error {
 
 	basePath := strings.TrimSuffix(s.basePath, "/")
 	folder = strings.Trim(folder, "/")
-
 	folderPath := basePath + "/" + folder
 	remotePath := folderPath + "/" + filename
 
