@@ -11,7 +11,7 @@ import (
 )
 
 const createLibrary = `-- name: CreateLibrary :execresult
-INSERT INTO libraries (id, title, small_description, degree, file_data, cover_data, link)
+INSERT INTO libraries (id, title, small_description, degree, file_url, cover_url, link)
 VALUES (?, ?, ?, ?, ?, ?, ?)
 `
 
@@ -20,8 +20,8 @@ type CreateLibraryParams struct {
 	Title            string
 	SmallDescription string
 	Degree           LibrariesDegree
-	FileData         sql.NullString
-	CoverData        sql.NullString
+	FileUrl          sql.NullString
+	CoverUrl         sql.NullString
 	Link             sql.NullString
 }
 
@@ -31,8 +31,8 @@ func (q *Queries) CreateLibrary(ctx context.Context, arg CreateLibraryParams) (s
 		arg.Title,
 		arg.SmallDescription,
 		arg.Degree,
-		arg.FileData,
-		arg.CoverData,
+		arg.FileUrl,
+		arg.CoverUrl,
 		arg.Link,
 	)
 }
@@ -47,7 +47,7 @@ func (q *Queries) DeleteLibrary(ctx context.Context, id string) error {
 }
 
 const getAllLibraries = `-- name: GetAllLibraries :many
-SELECT id, title, small_description, degree, file_data, cover_data, link, created_at, updated_at
+SELECT id, title, small_description, degree, file_url, cover_url, link, created_at, updated_at
 FROM libraries
 ORDER BY created_at DESC
 `
@@ -66,8 +66,8 @@ func (q *Queries) GetAllLibraries(ctx context.Context) ([]Library, error) {
 			&i.Title,
 			&i.SmallDescription,
 			&i.Degree,
-			&i.FileData,
-			&i.CoverData,
+			&i.FileUrl,
+			&i.CoverUrl,
 			&i.Link,
 			&i.CreatedAt,
 			&i.UpdatedAt,
@@ -86,7 +86,7 @@ func (q *Queries) GetAllLibraries(ctx context.Context) ([]Library, error) {
 }
 
 const getLibrariesByDegree = `-- name: GetLibrariesByDegree :many
-SELECT id, title, small_description, degree, file_data, cover_data, link, created_at, updated_at
+SELECT id, title, small_description, degree, file_url, cover_url, link, created_at, updated_at
 FROM libraries
 WHERE degree = ?
 ORDER BY created_at DESC
@@ -106,8 +106,8 @@ func (q *Queries) GetLibrariesByDegree(ctx context.Context, degree LibrariesDegr
 			&i.Title,
 			&i.SmallDescription,
 			&i.Degree,
-			&i.FileData,
-			&i.CoverData,
+			&i.FileUrl,
+			&i.CoverUrl,
 			&i.Link,
 			&i.CreatedAt,
 			&i.UpdatedAt,
@@ -126,7 +126,7 @@ func (q *Queries) GetLibrariesByDegree(ctx context.Context, degree LibrariesDegr
 }
 
 const getLibraryByID = `-- name: GetLibraryByID :one
-SELECT id, title, small_description, degree, file_data, cover_data, link, created_at, updated_at
+SELECT id, title, small_description, degree, file_url, cover_url, link, created_at, updated_at
 FROM libraries
 WHERE id = ?
 `
@@ -139,8 +139,8 @@ func (q *Queries) GetLibraryByID(ctx context.Context, id string) (Library, error
 		&i.Title,
 		&i.SmallDescription,
 		&i.Degree,
-		&i.FileData,
-		&i.CoverData,
+		&i.FileUrl,
+		&i.CoverUrl,
 		&i.Link,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -149,7 +149,7 @@ func (q *Queries) GetLibraryByID(ctx context.Context, id string) (Library, error
 }
 
 const getLibraryByTitle = `-- name: GetLibraryByTitle :one
-SELECT id, title, small_description, degree, file_data, cover_data, link, created_at, updated_at
+SELECT id, title, small_description, degree, file_url, cover_url, link, created_at, updated_at
 FROM libraries
 WHERE title = ?
 `
@@ -162,8 +162,8 @@ func (q *Queries) GetLibraryByTitle(ctx context.Context, title string) (Library,
 		&i.Title,
 		&i.SmallDescription,
 		&i.Degree,
-		&i.FileData,
-		&i.CoverData,
+		&i.FileUrl,
+		&i.CoverUrl,
 		&i.Link,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -173,7 +173,7 @@ func (q *Queries) GetLibraryByTitle(ctx context.Context, title string) (Library,
 
 const updateLibrary = `-- name: UpdateLibrary :execresult
 UPDATE libraries
-SET title = ?, small_description = ?, degree = ?, file_data = ?, cover_data = ?, link = ?, updated_at = CURRENT_TIMESTAMP
+SET title = ?, small_description = ?, degree = ?, file_url = ?, cover_url = ?, link = ?, updated_at = CURRENT_TIMESTAMP
 WHERE id = ?
 `
 
@@ -181,8 +181,8 @@ type UpdateLibraryParams struct {
 	Title            string
 	SmallDescription string
 	Degree           LibrariesDegree
-	FileData         sql.NullString
-	CoverData        sql.NullString
+	FileUrl          sql.NullString
+	CoverUrl         sql.NullString
 	Link             sql.NullString
 	ID               string
 }
@@ -192,8 +192,8 @@ func (q *Queries) UpdateLibrary(ctx context.Context, arg UpdateLibraryParams) (s
 		arg.Title,
 		arg.SmallDescription,
 		arg.Degree,
-		arg.FileData,
-		arg.CoverData,
+		arg.FileUrl,
+		arg.CoverUrl,
 		arg.Link,
 		arg.ID,
 	)

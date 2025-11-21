@@ -2,12 +2,14 @@ package acacia_usecase
 
 import (
 	"encoding/base64"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/apperrors"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/entity"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/repositories/acacia"
+	"github.com/joaolima7/maconaria_back-end/internal/infra/storage"
 )
 
 type CreateAcaciaInputDTO struct {
@@ -15,7 +17,7 @@ type CreateAcaciaInputDTO struct {
 	Terms       []string `json:"terms"`
 	IsPresident bool     `json:"is_president"`
 	Deceased    bool     `json:"deceased"`
-	ImageData   string   `json:"image_data" validate:"required"`
+	ImageData   string   `json:"image_data" validate:"required,base64"`
 }
 
 type CreateAcaciaOutputDTO struct {
@@ -24,18 +26,23 @@ type CreateAcaciaOutputDTO struct {
 	Terms       []string  `json:"terms"`
 	IsPresident bool      `json:"is_president"`
 	Deceased    bool      `json:"deceased"`
-	ImageData   string    `json:"image_data"`
+	ImageURL    string    `json:"image_url"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 }
 
 type CreateAcaciaUseCase struct {
-	Repository acacia.CreateAcaciaRepository
+	Repository     acacia.CreateAcaciaRepository
+	StorageService storage.StorageService
 }
 
-func NewCreateAcaciaUseCase(repository acacia.CreateAcaciaRepository) *CreateAcaciaUseCase {
+func NewCreateAcaciaUseCase(
+	repository acacia.CreateAcaciaRepository,
+	storageService storage.StorageService,
+) *CreateAcaciaUseCase {
 	return &CreateAcaciaUseCase{
-		Repository: repository,
+		Repository:     repository,
+		StorageService: storageService,
 	}
 }
 
@@ -53,26 +60,33 @@ func (uc *CreateAcaciaUseCase) Execute(input CreateAcaciaInputDTO) (*CreateAcaci
 		return nil, apperrors.NewValidationError("imagem", "Imagem em formato inválido!")
 	}
 
+	acaciaID := uuid.New().String()
+	filename := fmt.Sprintf("acacia_%s_%s.jpg", acaciaID, uuid.New().String())
+
+	imageURL, err := uc.StorageService.UploadImage(imageData, filename, "acacias")
+	if err != nil {
+		return nil, apperrors.NewInternalError("Erro ao fazer upload da imagem", err)
+	}
+
 	acaciaEntity, err := entity.NewAcacia(
-		uuid.New().String(),
+		acaciaID,
 		input.Name,
 		input.Terms,
 		input.IsPresident,
 		input.Deceased,
-		imageData,
+		imageURL,
 	)
 	if err != nil {
+
+		_ = uc.StorageService.DeleteImage(imageURL, "acacias")
 		return nil, err
 	}
 
 	acaciaCreated, err := uc.Repository.CreateAcacia(acaciaEntity)
 	if err != nil {
-		return nil, err
-	}
 
-	imageDataBase64 := ""
-	if len(acaciaCreated.ImageData) > 0 {
-		imageDataBase64 = base64.StdEncoding.EncodeToString(acaciaCreated.ImageData)
+		_ = uc.StorageService.DeleteImage(imageURL, "acacias")
+		return nil, err
 	}
 
 	return &CreateAcaciaOutputDTO{
@@ -81,7 +95,7 @@ func (uc *CreateAcaciaUseCase) Execute(input CreateAcaciaInputDTO) (*CreateAcaci
 		Terms:       acaciaCreated.Terms,
 		IsPresident: acaciaCreated.IsPresident,
 		Deceased:    acaciaCreated.Deceased,
-		ImageData:   imageDataBase64,
+		ImageURL:    acaciaCreated.ImageURL,
 		CreatedAt:   acaciaCreated.CreatedAt,
 		UpdatedAt:   acaciaCreated.UpdatedAt,
 	}, nil

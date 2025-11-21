@@ -28,6 +28,7 @@ import (
 	"github.com/joaolima7/maconaria_back-end/internal/domain/usecases/user_usecase"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/usecases/worker_usecase"
 	"github.com/joaolima7/maconaria_back-end/internal/infra/database"
+	"github.com/joaolima7/maconaria_back-end/internal/infra/storage"
 	"github.com/joaolima7/maconaria_back-end/internal/infra/web/auth"
 	"github.com/joaolima7/maconaria_back-end/internal/infra/web/handlers"
 	"github.com/joaolima7/maconaria_back-end/internal/infra/web/middlewares"
@@ -210,6 +211,7 @@ var InfraSet = wire.NewSet(
 	database.ProvideDatabase,
 	database.ProvideQueries,
 	provideJWTService,
+	provideStorageService,
 )
 
 // Web Set
@@ -230,6 +232,10 @@ var WebSet = wire.NewSet(
 
 func provideJWTService(cfg *config.Config) *auth.JWTService {
 	return auth.NewJWTService(cfg.JWTSecret, cfg.GetJWTDuration())
+}
+
+func provideStorageService(cfg *config.Config) storage.StorageService {
+	return storage.NewFTPStorageService(cfg)
 }
 
 func provideChiRouter(router *routes.Router) *chi.Mux {

@@ -27,7 +27,7 @@ func (r *CreateTimelineRepositoryImpl) CreateTimeline(timeline *entity.Timeline)
 	params := db.CreateTimelineParams{
 		ID:          timeline.ID,
 		Period:      timeline.Period,
-		PdfData:     timeline.PdfData,
+		PdfUrl:      timeline.PdfURL,
 		IsHighlight: timeline.IsHighlight,
 	}
 
@@ -48,7 +48,7 @@ func dbTimelineToEntity(timelineDB db.Timeline) *entity.Timeline {
 	return &entity.Timeline{
 		ID:          timelineDB.ID,
 		Period:      timelineDB.Period,
-		PdfData:     timelineDB.PdfData,
+		PdfURL:      timelineDB.PdfUrl,
 		IsHighlight: timelineDB.IsHighlight,
 		CreatedAt:   timelineDB.CreatedAt.Time,
 		UpdatedAt:   timelineDB.UpdatedAt.Time,

@@ -9,7 +9,7 @@ import (
 type Timeline struct {
 	ID          string
 	Period      string
-	PdfData     []byte
+	PdfURL      string
 	IsHighlight bool
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
@@ -18,13 +18,13 @@ type Timeline struct {
 func NewTimeline(
 	id string,
 	period string,
-	pdfData []byte,
+	pdfURL string,
 	isHighlight bool,
 ) (*Timeline, error) {
 	timeline := &Timeline{
 		ID:          id,
 		Period:      period,
-		PdfData:     pdfData,
+		PdfURL:      pdfURL,
 		IsHighlight: isHighlight,
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),
@@ -41,7 +41,7 @@ func (t *Timeline) Validate() error {
 	if err := t.ValidatePeriod(); err != nil {
 		return err
 	}
-	if err := t.ValidatePdf(); err != nil {
+	if err := t.ValidatePdfURL(); err != nil {
 		return err
 	}
 	return nil
@@ -57,15 +57,15 @@ func (t *Timeline) ValidatePeriod() error {
 	return nil
 }
 
-func (t *Timeline) ValidatePdf() error {
-	if len(t.PdfData) == 0 {
-		return apperrors.NewValidationError("PDF", "O PDF é obrigatório!")
+func (t *Timeline) ValidatePdfURL() error {
+	if t.PdfURL == "" {
+		return apperrors.NewValidationError("PDF", "A URL do PDF é obrigatória!")
 	}
 	return nil
 }
 
-func (t *Timeline) UpdatePdf(pdfData []byte) {
-	t.PdfData = pdfData
+func (t *Timeline) UpdatePdf(pdfURL string) {
+	t.PdfURL = pdfURL
 	t.UpdatedAt = time.Now()
 }
 

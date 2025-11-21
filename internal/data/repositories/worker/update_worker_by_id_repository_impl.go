@@ -49,7 +49,7 @@ func (r *UpdateWorkerByIDRepositoryImpl) UpdateWorkerByID(worker *entity.Worker)
 		InstallationDate:  worker.InstallationDate,
 		EmeritusMasonDate: emeritusMasonDate,
 		ProvectMasonDate:  provectMasonDate,
-		ImageData:         worker.ImageData,
+		ImageUrl:          worker.ImageURL,
 		Deceased:          worker.Deceased,
 		ID:                worker.ID,
 	}

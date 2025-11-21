@@ -2,6 +2,8 @@ package post
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 
 	"github.com/joaolima7/maconaria_back-end/internal/domain/apperrors"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/entity"
@@ -20,9 +22,9 @@ func (r *PostImageRepositoryImpl) CreatePostImage(image *entity.PostImage) error
 	ctx := context.Background()
 
 	params := db.CreatePostImageParams{
-		ID:        image.ID,
-		PostID:    image.PostID,
-		ImageData: image.ImageData,
+		ID:       image.ID,
+		PostID:   image.PostID,
+		ImageUrl: image.ImageURL,
 	}
 
 	_, err := r.queries.CreatePostImage(ctx, params)
@@ -46,12 +48,31 @@ func (r *PostImageRepositoryImpl) GetPostImages(postID string) ([]*entity.PostIm
 		images[i] = &entity.PostImage{
 			ID:        imgDB.ID,
 			PostID:    imgDB.PostID,
-			ImageData: imgDB.ImageData,
+			ImageURL:  imgDB.ImageUrl,
 			CreatedAt: imgDB.CreatedAt.Time,
 		}
 	}
 
 	return images, nil
+}
+
+func (r *PostImageRepositoryImpl) GetPostImageByID(imageID string) (*entity.PostImage, error) {
+	ctx := context.Background()
+
+	imgDB, err := r.queries.GetPostImageByID(ctx, imageID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, apperrors.NewNotFoundError("Imagem")
+		}
+		return nil, apperrors.WrapDatabaseError(err, "buscar imagem")
+	}
+
+	return &entity.PostImage{
+		ID:        imgDB.ID,
+		PostID:    imgDB.PostID,
+		ImageURL:  imgDB.ImageUrl,
+		CreatedAt: imgDB.CreatedAt.Time,
+	}, nil
 }
 
 func (r *PostImageRepositoryImpl) DeletePostImagesByPostID(postID string) error {

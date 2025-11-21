@@ -1,7 +1,6 @@
 package worker_usecase
 
 import (
-	"encoding/base64"
 	"time"
 
 	"github.com/joaolima7/maconaria_back-end/internal/domain/repositories/worker"
@@ -20,7 +19,7 @@ type GetAllWorkersOutputDTO struct {
 	InstallationDate  time.Time  `json:"installation_date"`
 	EmeritusMasonDate *time.Time `json:"emeritus_mason_date,omitempty"`
 	ProvectMasonDate  *time.Time `json:"provect_mason_date,omitempty"`
-	ImageData         string     `json:"image_data"`
+	ImageURL          string     `json:"image_url"`
 	Deceased          bool       `json:"deceased"`
 	CreatedAt         time.Time  `json:"created_at"`
 	UpdatedAt         time.Time  `json:"updated_at"`
@@ -44,12 +43,6 @@ func (uc *GetAllWorkersUseCase) Execute() ([]*GetAllWorkersOutputDTO, error) {
 
 	output := make([]*GetAllWorkersOutputDTO, len(workers))
 	for i, w := range workers {
-
-		imageData := ""
-		if len(w.ImageData) > 0 {
-			imageData = base64.StdEncoding.EncodeToString(w.ImageData)
-		}
-
 		output[i] = &GetAllWorkersOutputDTO{
 			ID:                w.ID,
 			Number:            w.Number,
@@ -63,7 +56,7 @@ func (uc *GetAllWorkersUseCase) Execute() ([]*GetAllWorkersOutputDTO, error) {
 			InstallationDate:  w.InstallationDate,
 			EmeritusMasonDate: w.EmeritusMasonDate,
 			ProvectMasonDate:  w.ProvectMasonDate,
-			ImageData:         imageData,
+			ImageURL:          w.ImageURL,
 			Deceased:          w.Deceased,
 			CreatedAt:         w.CreatedAt,
 			UpdatedAt:         w.UpdatedAt,

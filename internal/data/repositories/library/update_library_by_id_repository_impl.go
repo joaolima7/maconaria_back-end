@@ -29,29 +29,18 @@ func (r *UpdateLibraryByIDRepositoryImpl) UpdateLibraryByID(library *entity.Libr
 		return nil, apperrors.WrapDatabaseError(err, "buscar biblioteca")
 	}
 
-	// Converte []byte para sql.NullString
-	fileDataNull := sql.NullString{Valid: false}
-	if len(library.FileData) > 0 {
-		fileDataNull = sql.NullString{
-			String: string(library.FileData),
-			Valid:  true,
-		}
-	}
-
-	coverDataNull := sql.NullString{Valid: false}
-	if len(library.CoverData) > 0 {
-		coverDataNull = sql.NullString{
-			String: string(library.CoverData),
-			Valid:  true,
-		}
-	}
-
 	params := db.UpdateLibraryParams{
 		Title:            library.Title,
 		SmallDescription: library.SmallDescription,
 		Degree:           db.LibrariesDegree(library.Degree),
-		FileData:         fileDataNull,
-		CoverData:        coverDataNull,
+		FileUrl: sql.NullString{
+			String: library.FileURL,
+			Valid:  library.FileURL != "",
+		},
+		CoverUrl: sql.NullString{
+			String: library.CoverURL,
+			Valid:  library.CoverURL != "",
+		},
 		Link: sql.NullString{
 			String: library.Link,
 			Valid:  library.Link != "",

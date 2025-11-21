@@ -39,7 +39,7 @@ func (r *UpdateAcaciaByIDRepositoryImpl) UpdateAcaciaByID(acacia *entity.Acacia)
 		Terms:       []byte(termsJSON),
 		IsPresident: acacia.IsPresident,
 		Deceased:    acacia.Deceased,
-		ImageData:   acacia.ImageData,
+		ImageUrl:    acacia.ImageURL,
 		ID:          acacia.ID,
 	}
 

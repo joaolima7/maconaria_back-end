@@ -2,36 +2,43 @@ package timeline_usecase
 
 import (
 	"encoding/base64"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/apperrors"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/entity"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/repositories/timeline"
+	"github.com/joaolima7/maconaria_back-end/internal/infra/storage"
 )
 
 type CreateTimelineInputDTO struct {
 	Period      string `json:"period" validate:"required"`
-	PdfData     string `json:"pdf_data" validate:"required"`
+	PdfData     string `json:"pdf_data" validate:"required,base64"`
 	IsHighlight bool   `json:"is_highlight"`
 }
 
 type CreateTimelineOutputDTO struct {
 	ID          string    `json:"id"`
 	Period      string    `json:"period"`
-	PdfData     string    `json:"pdf_data"`
+	PdfURL      string    `json:"pdf_url"`
 	IsHighlight bool      `json:"is_highlight"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 }
 
 type CreateTimelineUseCase struct {
-	Repository timeline.CreateTimelineRepository
+	Repository     timeline.CreateTimelineRepository
+	StorageService storage.StorageService
 }
 
-func NewCreateTimelineUseCase(repository timeline.CreateTimelineRepository) *CreateTimelineUseCase {
+func NewCreateTimelineUseCase(
+	repository timeline.CreateTimelineRepository,
+	storageService storage.StorageService,
+) *CreateTimelineUseCase {
 	return &CreateTimelineUseCase{
-		Repository: repository,
+		Repository:     repository,
+		StorageService: storageService,
 	}
 }
 
@@ -45,30 +52,37 @@ func (uc *CreateTimelineUseCase) Execute(input CreateTimelineInputDTO) (*CreateT
 		return nil, apperrors.NewValidationError("PDF", "PDF em formato inválido!")
 	}
 
+	timelineID := uuid.New().String()
+	filename := fmt.Sprintf("timeline_%s_%s.pdf", timelineID, uuid.New().String())
+
+	pdfURL, err := uc.StorageService.UploadPDF(pdfData, filename, "timelines")
+	if err != nil {
+		return nil, apperrors.NewInternalError("Erro ao fazer upload do PDF", err)
+	}
+
 	timelineEntity, err := entity.NewTimeline(
-		uuid.New().String(),
+		timelineID,
 		input.Period,
-		pdfData,
+		pdfURL,
 		input.IsHighlight,
 	)
 	if err != nil {
+
+		_ = uc.StorageService.DeletePDF(pdfURL, "timelines")
 		return nil, err
 	}
 
 	timelineCreated, err := uc.Repository.CreateTimeline(timelineEntity)
 	if err != nil {
-		return nil, err
-	}
 
-	pdfDataBase64 := ""
-	if len(timelineCreated.PdfData) > 0 {
-		pdfDataBase64 = base64.StdEncoding.EncodeToString(timelineCreated.PdfData)
+		_ = uc.StorageService.DeletePDF(pdfURL, "timelines")
+		return nil, err
 	}
 
 	return &CreateTimelineOutputDTO{
 		ID:          timelineCreated.ID,
 		Period:      timelineCreated.Period,
-		PdfData:     pdfDataBase64,
+		PdfURL:      timelineCreated.PdfURL,
 		IsHighlight: timelineCreated.IsHighlight,
 		CreatedAt:   timelineCreated.CreatedAt,
 		UpdatedAt:   timelineCreated.UpdatedAt,

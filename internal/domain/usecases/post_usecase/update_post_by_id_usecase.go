@@ -2,11 +2,14 @@ package post_usecase
 
 import (
 	"encoding/base64"
+	"fmt"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/apperrors"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/entity"
 	post_repository "github.com/joaolima7/maconaria_back-end/internal/domain/repositories/post"
+	"github.com/joaolima7/maconaria_back-end/internal/infra/storage"
 	"github.com/joaolima7/maconaria_back-end/internal/types"
 )
 
@@ -42,16 +45,30 @@ type UpdatePostByIDOutputDTO struct {
 }
 
 type UpdatePostByIDUseCase struct {
-	Repository post_repository.UpdatePostByIDRepository
+	Repository      post_repository.UpdatePostByIDRepository
+	ImageRepository post_repository.PostImageRepository
+	StorageService  storage.StorageService
 }
 
-func NewUpdatePostByIDUseCase(repository post_repository.UpdatePostByIDRepository) *UpdatePostByIDUseCase {
+func NewUpdatePostByIDUseCase(
+	repository post_repository.UpdatePostByIDRepository,
+	imageRepository post_repository.PostImageRepository,
+	storageService storage.StorageService,
+) *UpdatePostByIDUseCase {
 	return &UpdatePostByIDUseCase{
-		Repository: repository,
+		Repository:      repository,
+		ImageRepository: imageRepository,
+		StorageService:  storageService,
 	}
 }
 
 func (uc *UpdatePostByIDUseCase) Execute(input UpdatePostByIDInputDTO) (*UpdatePostByIDOutputDTO, error) {
+
+	oldImages, err := uc.ImageRepository.GetPostImages(input.ID)
+	if err != nil {
+		return nil, err
+	}
+
 	post := &entity.Post{
 		ID:                  input.ID,
 		Title:               input.Title,
@@ -74,13 +91,28 @@ func (uc *UpdatePostByIDUseCase) Execute(input UpdatePostByIDInputDTO) (*UpdateP
 				return nil, apperrors.NewValidationError("images", "Imagem inválida em formato base64")
 			}
 
-			post.Images[i] = entity.NewPostImage("", post.ID, imageData)
+			filename := fmt.Sprintf("post_%s_img_%d_%s.jpg", post.ID, i, uuid.New().String())
+
+			imageURL, err := uc.StorageService.UploadImage(imageData, filename, "posts")
+			if err != nil {
+				return nil, apperrors.NewInternalError("Erro ao fazer upload da imagem", err)
+			}
+
+			post.Images[i] = entity.NewPostImage("", post.ID, imageURL)
 		}
 	}
 
 	updatedPost, err := uc.Repository.UpdatePostByID(post)
 	if err != nil {
+
+		for _, img := range post.Images {
+			_ = uc.StorageService.DeleteImage(img.ImageURL, "posts")
+		}
 		return nil, err
+	}
+
+	for _, oldImg := range oldImages {
+		_ = uc.StorageService.DeleteImage(oldImg.ImageURL, "posts")
 	}
 
 	var imagesOutput []*PostImageOutputDTO
@@ -88,8 +120,8 @@ func (uc *UpdatePostByIDUseCase) Execute(input UpdatePostByIDInputDTO) (*UpdateP
 		imagesOutput = make([]*PostImageOutputDTO, len(updatedPost.Images))
 		for i, img := range updatedPost.Images {
 			imagesOutput[i] = &PostImageOutputDTO{
-				ID:        img.ID,
-				ImageData: base64.StdEncoding.EncodeToString(img.ImageData),
+				ID:       img.ID,
+				ImageURL: img.ImageURL,
 			}
 		}
 	}

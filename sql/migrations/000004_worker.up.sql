@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS workers (
     installation_date DATE NOT NULL,
     emeritus_mason_date DATE,
     provect_mason_date DATE,
-    image_data LONGBLOB NOT NULL,
+    image_url TEXT NOT NULL,
     deceased BOOLEAN NOT NULL DEFAULT false,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

@@ -2,11 +2,14 @@ package worker_usecase
 
 import (
 	"encoding/base64"
+	"fmt"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/apperrors"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/entity"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/repositories/worker"
+	"github.com/joaolima7/maconaria_back-end/internal/infra/storage"
 )
 
 type UpdateWorkerByIDInputDTO struct {
@@ -22,7 +25,7 @@ type UpdateWorkerByIDInputDTO struct {
 	InstallationDate  string  `json:"installation_date" validate:"required"`
 	EmeritusMasonDate *string `json:"emeritus_mason_date,omitempty"`
 	ProvectMasonDate  *string `json:"provect_mason_date,omitempty"`
-	ImageData         string  `json:"image_data"`
+	ImageData         string  `json:"image_data,omitempty"`
 	Deceased          bool    `json:"deceased"`
 }
 
@@ -39,26 +42,35 @@ type UpdateWorkerByIDOutputDTO struct {
 	InstallationDate  time.Time  `json:"installation_date"`
 	EmeritusMasonDate *time.Time `json:"emeritus_mason_date,omitempty"`
 	ProvectMasonDate  *time.Time `json:"provect_mason_date,omitempty"`
-	ImageData         string     `json:"image_data"`
+	ImageURL          string     `json:"image_url"`
 	Deceased          bool       `json:"deceased"`
 	CreatedAt         time.Time  `json:"created_at"`
 	UpdatedAt         time.Time  `json:"updated_at"`
 }
 
 type UpdateWorkerByIDUseCase struct {
-	Repository worker.UpdateWorkerByIDRepository
+	Repository     worker.UpdateWorkerByIDRepository
+	GetRepository  worker.GetWorkerByIDRepository
+	StorageService storage.StorageService
 }
 
-func NewUpdateWorkerByIDUseCase(repository worker.UpdateWorkerByIDRepository) *UpdateWorkerByIDUseCase {
+func NewUpdateWorkerByIDUseCase(
+	repository worker.UpdateWorkerByIDRepository,
+	getRepository worker.GetWorkerByIDRepository,
+	storageService storage.StorageService,
+) *UpdateWorkerByIDUseCase {
 	return &UpdateWorkerByIDUseCase{
-		Repository: repository,
+		Repository:     repository,
+		GetRepository:  getRepository,
+		StorageService: storageService,
 	}
 }
 
 func (uc *UpdateWorkerByIDUseCase) Execute(input UpdateWorkerByIDInputDTO) (*UpdateWorkerByIDOutputDTO, error) {
 
-	if input.ImageData == "" {
-		return nil, apperrors.NewValidationError("imagem", "A imagem é obrigatória!")
+	existingWorker, err := uc.GetRepository.GetWorkerByID(input.ID)
+	if err != nil {
+		return nil, err
 	}
 
 	birthDate, err := time.Parse("2006-01-02", input.BirthDate)
@@ -107,9 +119,24 @@ func (uc *UpdateWorkerByIDUseCase) Execute(input UpdateWorkerByIDInputDTO) (*Upd
 		provectMasonDate = &date
 	}
 
-	imageData, err := base64.StdEncoding.DecodeString(input.ImageData)
-	if err != nil {
-		return nil, apperrors.NewValidationError("imagem", "Imagem em formato inválido!")
+	imageURL := existingWorker.ImageURL
+	var oldImageURL string
+
+	if input.ImageData != "" {
+		imageData, err := base64.StdEncoding.DecodeString(input.ImageData)
+		if err != nil {
+			return nil, apperrors.NewValidationError("imagem", "Imagem em formato inválido!")
+		}
+
+		filename := fmt.Sprintf("worker_%s_%s.jpg", input.ID, uuid.New().String())
+
+		newImageURL, err := uc.StorageService.UploadImage(imageData, filename, "workers")
+		if err != nil {
+			return nil, apperrors.NewInternalError("Erro ao fazer upload da imagem", err)
+		}
+
+		oldImageURL = imageURL
+		imageURL = newImageURL
 	}
 
 	workerEntity := &entity.Worker{
@@ -125,23 +152,30 @@ func (uc *UpdateWorkerByIDUseCase) Execute(input UpdateWorkerByIDInputDTO) (*Upd
 		InstallationDate:  installationDate,
 		EmeritusMasonDate: emeritusMasonDate,
 		ProvectMasonDate:  provectMasonDate,
-		ImageData:         imageData,
+		ImageURL:          imageURL,
 		Deceased:          input.Deceased,
 		UpdatedAt:         time.Now(),
 	}
 
 	if err := workerEntity.Validate(); err != nil {
+
+		if oldImageURL != "" {
+			_ = uc.StorageService.DeleteImage(imageURL, "workers")
+		}
 		return nil, err
 	}
 
 	workerUpdated, err := uc.Repository.UpdateWorkerByID(workerEntity)
 	if err != nil {
+
+		if oldImageURL != "" {
+			_ = uc.StorageService.DeleteImage(imageURL, "workers")
+		}
 		return nil, err
 	}
 
-	imageDataBase64 := ""
-	if len(workerUpdated.ImageData) > 0 {
-		imageDataBase64 = base64.StdEncoding.EncodeToString(workerUpdated.ImageData)
+	if oldImageURL != "" {
+		_ = uc.StorageService.DeleteImage(oldImageURL, "workers")
 	}
 
 	return &UpdateWorkerByIDOutputDTO{
@@ -157,7 +191,7 @@ func (uc *UpdateWorkerByIDUseCase) Execute(input UpdateWorkerByIDInputDTO) (*Upd
 		InstallationDate:  workerUpdated.InstallationDate,
 		EmeritusMasonDate: workerUpdated.EmeritusMasonDate,
 		ProvectMasonDate:  workerUpdated.ProvectMasonDate,
-		ImageData:         imageDataBase64,
+		ImageURL:          workerUpdated.ImageURL,
 		Deceased:          workerUpdated.Deceased,
 		CreatedAt:         workerUpdated.CreatedAt,
 		UpdatedAt:         workerUpdated.UpdatedAt,

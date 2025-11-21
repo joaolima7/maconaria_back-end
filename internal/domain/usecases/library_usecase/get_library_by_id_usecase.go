@@ -1,7 +1,6 @@
 package library_usecase
 
 import (
-	"encoding/base64"
 	"time"
 
 	"github.com/joaolima7/maconaria_back-end/internal/domain/repositories/library"
@@ -16,9 +15,9 @@ type GetLibraryByIDOutputDTO struct {
 	Title            string    `json:"title"`
 	SmallDescription string    `json:"small_description"`
 	Degree           string    `json:"degree"`
-	FileData         string    `json:"file_data"`
-	CoverData        string    `json:"cover_data"`
-	Link             string    `json:"link"`
+	FileURL          string    `json:"file_url,omitempty"`
+	CoverURL         string    `json:"cover_url,omitempty"`
+	Link             string    `json:"link,omitempty"`
 	CreatedAt        time.Time `json:"created_at"`
 	UpdatedAt        time.Time `json:"updated_at"`
 }
@@ -39,23 +38,13 @@ func (uc *GetLibraryByIDUseCase) Execute(input GetLibraryByIDInputDTO) (*GetLibr
 		return nil, err
 	}
 
-	fileData := ""
-	if len(l.FileData) > 0 {
-		fileData = base64.StdEncoding.EncodeToString(l.FileData)
-	}
-
-	coverData := ""
-	if len(l.CoverData) > 0 {
-		coverData = base64.StdEncoding.EncodeToString(l.CoverData)
-	}
-
 	return &GetLibraryByIDOutputDTO{
 		ID:               l.ID,
 		Title:            l.Title,
 		SmallDescription: l.SmallDescription,
 		Degree:           string(l.Degree),
-		FileData:         fileData,
-		CoverData:        coverData,
+		FileURL:          l.FileURL,
+		CoverURL:         l.CoverURL,
 		Link:             l.Link,
 		CreatedAt:        l.CreatedAt,
 		UpdatedAt:        l.UpdatedAt,

@@ -1,7 +1,6 @@
 package post_usecase
 
 import (
-	"encoding/base64"
 	"time"
 
 	post_repository "github.com/joaolima7/maconaria_back-end/internal/domain/repositories/post"
@@ -49,8 +48,8 @@ func (uc *GetAllPostsUseCase) Execute() ([]*GetAllPostsOutputDTO, error) {
 			imagesOutput = make([]*PostImageOutputDTO, len(post.Images))
 			for j, img := range post.Images {
 				imagesOutput[j] = &PostImageOutputDTO{
-					ID:        img.ID,
-					ImageData: base64.StdEncoding.EncodeToString(img.ImageData),
+					ID:       img.ID,
+					ImageURL: img.ImageURL,
 				}
 			}
 		}

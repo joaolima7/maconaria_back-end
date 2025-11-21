@@ -2,6 +2,7 @@ package post_usecase
 
 import (
 	"encoding/base64"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -9,6 +10,7 @@ import (
 	"github.com/joaolima7/maconaria_back-end/internal/domain/entity"
 	post_repository "github.com/joaolima7/maconaria_back-end/internal/domain/repositories/post"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/repositories/user"
+	"github.com/joaolima7/maconaria_back-end/internal/infra/storage"
 	"github.com/joaolima7/maconaria_back-end/internal/types"
 )
 
@@ -27,8 +29,8 @@ type CreatePostInputDTO struct {
 }
 
 type PostImageOutputDTO struct {
-	ID        string `json:"id"`
-	ImageData string `json:"image_data"`
+	ID       string `json:"id"`
+	ImageURL string `json:"image_url"`
 }
 
 type CreatePostOutputDTO struct {
@@ -51,15 +53,18 @@ type CreatePostOutputDTO struct {
 type CreatePostUseCase struct {
 	PostRepository post_repository.CreatePostRepository
 	UserRepository user.GetUserByIdRepository
+	StorageService storage.StorageService
 }
 
 func NewCreatePostUseCase(
 	postRepository post_repository.CreatePostRepository,
 	userRepository user.GetUserByIdRepository,
+	storageService storage.StorageService,
 ) *CreatePostUseCase {
 	return &CreatePostUseCase{
 		PostRepository: postRepository,
 		UserRepository: userRepository,
+		StorageService: storageService,
 	}
 }
 
@@ -95,12 +100,23 @@ func (uc *CreatePostUseCase) Execute(input CreatePostInputDTO) (*CreatePostOutpu
 				return nil, apperrors.NewValidationError("images", "Imagem inválida em formato base64")
 			}
 
-			post.Images[i] = entity.NewPostImage("", post.ID, imageData)
+			filename := fmt.Sprintf("post_%s_img_%d_%s.jpg", post.ID, i, uuid.New().String())
+
+			imageURL, err := uc.StorageService.UploadImage(imageData, filename, "posts")
+			if err != nil {
+				return nil, apperrors.NewInternalError("Erro ao fazer upload da imagem", err)
+			}
+
+			post.Images[i] = entity.NewPostImage("", post.ID, imageURL)
 		}
 	}
 
 	postCreated, err := uc.PostRepository.CreatePost(post)
 	if err != nil {
+
+		for _, img := range post.Images {
+			_ = uc.StorageService.DeleteImage(img.ImageURL, "posts")
+		}
 		return nil, err
 	}
 
@@ -109,8 +125,8 @@ func (uc *CreatePostUseCase) Execute(input CreatePostInputDTO) (*CreatePostOutpu
 		imagesOutput = make([]*PostImageOutputDTO, len(postCreated.Images))
 		for i, img := range postCreated.Images {
 			imagesOutput[i] = &PostImageOutputDTO{
-				ID:        img.ID,
-				ImageData: base64.StdEncoding.EncodeToString(img.ImageData),
+				ID:       img.ID,
+				ImageURL: img.ImageURL,
 			}
 		}
 	}

@@ -11,14 +11,14 @@ import (
 )
 
 const createTimeline = `-- name: CreateTimeline :execresult
-INSERT INTO timelines (id, period, pdf_data, is_highlight)
+INSERT INTO timelines (id, period, pdf_url, is_highlight)
 VALUES (?, ?, ?, ?)
 `
 
 type CreateTimelineParams struct {
 	ID          string
 	Period      string
-	PdfData     []byte
+	PdfUrl      string
 	IsHighlight bool
 }
 
@@ -26,7 +26,7 @@ func (q *Queries) CreateTimeline(ctx context.Context, arg CreateTimelineParams) 
 	return q.db.ExecContext(ctx, createTimeline,
 		arg.ID,
 		arg.Period,
-		arg.PdfData,
+		arg.PdfUrl,
 		arg.IsHighlight,
 	)
 }
@@ -41,7 +41,7 @@ func (q *Queries) DeleteTimeline(ctx context.Context, id string) error {
 }
 
 const getAllTimelines = `-- name: GetAllTimelines :many
-SELECT id, period, pdf_data, is_highlight, created_at, updated_at
+SELECT id, period, pdf_url, is_highlight, created_at, updated_at
 FROM timelines
 ORDER BY period ASC
 `
@@ -58,7 +58,7 @@ func (q *Queries) GetAllTimelines(ctx context.Context) ([]Timeline, error) {
 		if err := rows.Scan(
 			&i.ID,
 			&i.Period,
-			&i.PdfData,
+			&i.PdfUrl,
 			&i.IsHighlight,
 			&i.CreatedAt,
 			&i.UpdatedAt,
@@ -77,7 +77,7 @@ func (q *Queries) GetAllTimelines(ctx context.Context) ([]Timeline, error) {
 }
 
 const getTimelineByID = `-- name: GetTimelineByID :one
-SELECT id, period, pdf_data, is_highlight, created_at, updated_at
+SELECT id, period, pdf_url, is_highlight, created_at, updated_at
 FROM timelines
 WHERE id = ?
 `
@@ -88,7 +88,7 @@ func (q *Queries) GetTimelineByID(ctx context.Context, id string) (Timeline, err
 	err := row.Scan(
 		&i.ID,
 		&i.Period,
-		&i.PdfData,
+		&i.PdfUrl,
 		&i.IsHighlight,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -97,7 +97,7 @@ func (q *Queries) GetTimelineByID(ctx context.Context, id string) (Timeline, err
 }
 
 const getTimelineByPeriod = `-- name: GetTimelineByPeriod :one
-SELECT id, period, pdf_data, is_highlight, created_at, updated_at
+SELECT id, period, pdf_url, is_highlight, created_at, updated_at
 FROM timelines
 WHERE period = ?
 `
@@ -108,7 +108,7 @@ func (q *Queries) GetTimelineByPeriod(ctx context.Context, period string) (Timel
 	err := row.Scan(
 		&i.ID,
 		&i.Period,
-		&i.PdfData,
+		&i.PdfUrl,
 		&i.IsHighlight,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -118,13 +118,13 @@ func (q *Queries) GetTimelineByPeriod(ctx context.Context, period string) (Timel
 
 const updateTimeline = `-- name: UpdateTimeline :execresult
 UPDATE timelines
-SET period = ?, pdf_data = ?, is_highlight = ?, updated_at = CURRENT_TIMESTAMP
+SET period = ?, pdf_url = ?, is_highlight = ?, updated_at = CURRENT_TIMESTAMP
 WHERE id = ?
 `
 
 type UpdateTimelineParams struct {
 	Period      string
-	PdfData     []byte
+	PdfUrl      string
 	IsHighlight bool
 	ID          string
 }
@@ -132,7 +132,7 @@ type UpdateTimelineParams struct {
 func (q *Queries) UpdateTimeline(ctx context.Context, arg UpdateTimelineParams) (sql.Result, error) {
 	return q.db.ExecContext(ctx, updateTimeline,
 		arg.Period,
-		arg.PdfData,
+		arg.PdfUrl,
 		arg.IsHighlight,
 		arg.ID,
 	)

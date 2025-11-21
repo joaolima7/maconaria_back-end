@@ -53,7 +53,7 @@ func (r *CreateWorkerRepositoryImpl) CreateWorker(worker *entity.Worker) (*entit
 		InstallationDate:  worker.InstallationDate,
 		EmeritusMasonDate: emeritusMasonDate,
 		ProvectMasonDate:  provectMasonDate,
-		ImageData:         worker.ImageData,
+		ImageUrl:          worker.ImageURL,
 		Deceased:          worker.Deceased,
 	}
 
@@ -92,7 +92,7 @@ func dbWorkerToEntity(workerDB db.Worker) *entity.Worker {
 		InstallationDate:  workerDB.InstallationDate,
 		EmeritusMasonDate: emeritusMasonDate,
 		ProvectMasonDate:  provectMasonDate,
-		ImageData:         workerDB.ImageData,
+		ImageURL:          workerDB.ImageUrl,
 		Deceased:          workerDB.Deceased,
 		CreatedAt:         workerDB.CreatedAt.Time,
 		UpdatedAt:         workerDB.UpdatedAt.Time,

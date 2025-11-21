@@ -31,7 +31,7 @@ func (r *UpdateTimelineByIDRepositoryImpl) UpdateTimelineByID(timeline *entity.T
 
 	params := db.UpdateTimelineParams{
 		Period:      timeline.Period,
-		PdfData:     timeline.PdfData,
+		PdfUrl:      timeline.PdfURL,
 		IsHighlight: timeline.IsHighlight,
 		ID:          timeline.ID,
 	}

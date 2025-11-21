@@ -5,15 +5,15 @@ import "time"
 type PostImage struct {
 	ID        string
 	PostID    string
-	ImageData []byte
+	ImageURL  string
 	CreatedAt time.Time
 }
 
-func NewPostImage(id string, postID string, data []byte) *PostImage {
+func NewPostImage(id string, postID string, imageURL string) *PostImage {
 	return &PostImage{
 		ID:        id,
 		PostID:    postID,
-		ImageData: data,
+		ImageURL:  imageURL,
 		CreatedAt: time.Now(),
 	}
 }

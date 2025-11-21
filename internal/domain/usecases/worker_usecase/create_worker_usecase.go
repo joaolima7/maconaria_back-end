@@ -2,12 +2,14 @@ package worker_usecase
 
 import (
 	"encoding/base64"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/apperrors"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/entity"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/repositories/worker"
+	"github.com/joaolima7/maconaria_back-end/internal/infra/storage"
 )
 
 type CreateWorkerInputDTO struct {
@@ -22,7 +24,7 @@ type CreateWorkerInputDTO struct {
 	InstallationDate  string  `json:"installation_date" validate:"required"`
 	EmeritusMasonDate *string `json:"emeritus_mason_date,omitempty"`
 	ProvectMasonDate  *string `json:"provect_mason_date,omitempty"`
-	ImageData         string  `json:"image_data"`
+	ImageData         string  `json:"image_data" validate:"required,base64"`
 	Deceased          bool    `json:"deceased"`
 }
 
@@ -39,19 +41,24 @@ type CreateWorkerOutputDTO struct {
 	InstallationDate  time.Time  `json:"installation_date"`
 	EmeritusMasonDate *time.Time `json:"emeritus_mason_date,omitempty"`
 	ProvectMasonDate  *time.Time `json:"provect_mason_date,omitempty"`
-	ImageData         string     `json:"image_data"`
+	ImageURL          string     `json:"image_url"`
 	Deceased          bool       `json:"deceased"`
 	CreatedAt         time.Time  `json:"created_at"`
 	UpdatedAt         time.Time  `json:"updated_at"`
 }
 
 type CreateWorkerUseCase struct {
-	Repository worker.CreateWorkerRepository
+	Repository     worker.CreateWorkerRepository
+	StorageService storage.StorageService
 }
 
-func NewCreateWorkerUseCase(repository worker.CreateWorkerRepository) *CreateWorkerUseCase {
+func NewCreateWorkerUseCase(
+	repository worker.CreateWorkerRepository,
+	storageService storage.StorageService,
+) *CreateWorkerUseCase {
 	return &CreateWorkerUseCase{
-		Repository: repository,
+		Repository:     repository,
+		StorageService: storageService,
 	}
 }
 
@@ -111,8 +118,16 @@ func (uc *CreateWorkerUseCase) Execute(input CreateWorkerInputDTO) (*CreateWorke
 		return nil, apperrors.NewValidationError("imagem", "Imagem em formato inválido!")
 	}
 
+	workerID := uuid.New().String()
+	filename := fmt.Sprintf("worker_%s_%s.jpg", workerID, uuid.New().String())
+
+	imageURL, err := uc.StorageService.UploadImage(imageData, filename, "workers")
+	if err != nil {
+		return nil, apperrors.NewInternalError("Erro ao fazer upload da imagem", err)
+	}
+
 	workerEntity, err := entity.NewWorker(
-		uuid.New().String(),
+		workerID,
 		input.Number,
 		input.Name,
 		input.Registration,
@@ -124,21 +139,20 @@ func (uc *CreateWorkerUseCase) Execute(input CreateWorkerInputDTO) (*CreateWorke
 		installationDate,
 		emeritusMasonDate,
 		provectMasonDate,
-		imageData,
+		imageURL,
 		input.Deceased,
 	)
 	if err != nil {
+
+		_ = uc.StorageService.DeleteImage(imageURL, "workers")
 		return nil, err
 	}
 
 	workerCreated, err := uc.Repository.CreateWorker(workerEntity)
 	if err != nil {
-		return nil, err
-	}
 
-	imageDataBase64 := ""
-	if len(workerCreated.ImageData) > 0 {
-		imageDataBase64 = base64.StdEncoding.EncodeToString(workerCreated.ImageData)
+		_ = uc.StorageService.DeleteImage(imageURL, "workers")
+		return nil, err
 	}
 
 	return &CreateWorkerOutputDTO{
@@ -154,7 +168,7 @@ func (uc *CreateWorkerUseCase) Execute(input CreateWorkerInputDTO) (*CreateWorke
 		InstallationDate:  workerCreated.InstallationDate,
 		EmeritusMasonDate: workerCreated.EmeritusMasonDate,
 		ProvectMasonDate:  workerCreated.ProvectMasonDate,
-		ImageData:         imageDataBase64,
+		ImageURL:          workerCreated.ImageURL,
 		Deceased:          workerCreated.Deceased,
 		CreatedAt:         workerCreated.CreatedAt,
 		UpdatedAt:         workerCreated.UpdatedAt,

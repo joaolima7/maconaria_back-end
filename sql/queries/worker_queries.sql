@@ -2,14 +2,14 @@
 INSERT INTO workers (
   id, number, name, registration, birth_date,
   initiation_date, elevation_date, exaltation_date, affiliation_date, installation_date,
-  emeritus_mason_date, provect_mason_date, image_data, deceased
+  emeritus_mason_date, provect_mason_date, image_url, deceased
 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 -- name: GetWorkerByID :one
 SELECT
   id, number, name, registration, birth_date,
   initiation_date, elevation_date, exaltation_date, affiliation_date, installation_date,
-  emeritus_mason_date, provect_mason_date, image_data, deceased,
+  emeritus_mason_date, provect_mason_date, image_url, deceased,
   created_at, updated_at
 FROM workers
 WHERE id = ?;
@@ -18,7 +18,7 @@ WHERE id = ?;
 SELECT
   id, number, name, registration, birth_date,
   initiation_date, elevation_date, exaltation_date, affiliation_date, installation_date,
-  emeritus_mason_date, provect_mason_date, image_data, deceased,
+  emeritus_mason_date, provect_mason_date, image_url, deceased,
   created_at, updated_at
 FROM workers
 WHERE number = ?;
@@ -27,7 +27,7 @@ WHERE number = ?;
 SELECT
   id, number, name, registration, birth_date,
   initiation_date, elevation_date, exaltation_date, affiliation_date, installation_date,
-  emeritus_mason_date, provect_mason_date, image_data, deceased,
+  emeritus_mason_date, provect_mason_date, image_url, deceased,
   created_at, updated_at
 FROM workers
 WHERE registration = ?;
@@ -36,7 +36,7 @@ WHERE registration = ?;
 SELECT
   id, number, name, registration, birth_date,
   initiation_date, elevation_date, exaltation_date, affiliation_date, installation_date,
-  emeritus_mason_date, provect_mason_date, image_data, deceased,
+  emeritus_mason_date, provect_mason_date, image_url, deceased,
   created_at, updated_at
 FROM workers
 ORDER BY number ASC;
@@ -47,7 +47,7 @@ SET
   number = ?, name = ?, registration = ?, birth_date = ?,
   initiation_date = ?, elevation_date = ?, exaltation_date = ?, affiliation_date = ?,
   installation_date = ?, emeritus_mason_date = ?, provect_mason_date = ?,
-  image_data = ?, deceased = ?,
+  image_url = ?, deceased = ?,
   updated_at = CURRENT_TIMESTAMP
 WHERE id = ?;
 

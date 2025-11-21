@@ -21,6 +21,12 @@ type Config struct {
 	JWTExpiresInMin int    `mapstructure:"JWT_EXPIRES_IN_MIN"`
 	ServerPort      string `mapstructure:"SERVER_PORT"`
 	AutoMigrate     bool   `mapstructure:"AUTO_MIGRATE"`
+	FTPHost         string `mapstructure:"FTP_HOST"`
+	FTPPort         string `mapstructure:"FTP_PORT"`
+	FTPUser         string `mapstructure:"FTP_USER"`
+	FTPPassword     string `mapstructure:"FTP_PASSWORD"`
+	FTPBasePath     string `mapstructure:"FTP_BASE_PATH"`
+	FTPBaseURL      string `mapstructure:"FTP_BASE_URL"`
 }
 
 func LoadConfig(path string) (*Config, error) {
@@ -42,19 +48,6 @@ func LoadConfig(path string) (*Config, error) {
 
 	if err := viper.Unmarshal(&cfg); err != nil {
 		return nil, fmt.Errorf("erro ao fazer unmarshal config: %w", err)
-	}
-
-	if cfg.DBDriver == "" {
-		cfg.DBDriver = "mysql"
-	}
-	if cfg.JWTSecret == "" {
-		cfg.JWTSecret = "default-secret-key-change-me"
-	}
-	if cfg.JWTExpiresInMin == 0 {
-		cfg.JWTExpiresInMin = 1440
-	}
-	if cfg.ServerPort == "" {
-		cfg.ServerPort = "8080"
 	}
 
 	if autoMigrateStr := os.Getenv("AUTO_MIGRATE"); autoMigrateStr != "" {

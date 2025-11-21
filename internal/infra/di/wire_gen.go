@@ -30,6 +30,7 @@ import (
 	"github.com/joaolima7/maconaria_back-end/internal/domain/usecases/user_usecase"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/usecases/worker_usecase"
 	"github.com/joaolima7/maconaria_back-end/internal/infra/database"
+	"github.com/joaolima7/maconaria_back-end/internal/infra/storage"
 	"github.com/joaolima7/maconaria_back-end/internal/infra/web/auth"
 	"github.com/joaolima7/maconaria_back-end/internal/infra/web/handlers"
 	"github.com/joaolima7/maconaria_back-end/internal/infra/web/middlewares"
@@ -62,49 +63,50 @@ func InitializeApp(cfg *config.Config) (*App, error) {
 	authHandler := handlers.NewAuthHandler(loginUseCase)
 	postImageRepositoryImpl := post.NewPostImageRepositoryImpl(queries)
 	createPostRepositoryImpl := post.NewCreatePostRepositoryImpl(queries, postImageRepositoryImpl)
-	createPostUseCase := post_usecase.NewCreatePostUseCase(createPostRepositoryImpl, getUserByIdRepositoryImpl)
+	storageService := provideStorageService(cfg)
+	createPostUseCase := post_usecase.NewCreatePostUseCase(createPostRepositoryImpl, getUserByIdRepositoryImpl, storageService)
 	getAllPostsRepositoryImpl := post.NewGetAllPostsRepositoryImpl(queries, postImageRepositoryImpl)
 	getAllPostsUseCase := post_usecase.NewGetAllPostsUseCase(getAllPostsRepositoryImpl)
 	updatePostByIDRepositoryImpl := post.NewUpdatePostByIDRepositoryImpl(queries, postImageRepositoryImpl)
-	updatePostByIDUseCase := post_usecase.NewUpdatePostByIDUseCase(updatePostByIDRepositoryImpl)
+	updatePostByIDUseCase := post_usecase.NewUpdatePostByIDUseCase(updatePostByIDRepositoryImpl, postImageRepositoryImpl, storageService)
 	deletePostRepositoryImpl := post.NewDeletePostRepositoryImpl(queries)
-	deletePostUseCase := post_usecase.NewDeletePostUseCase(deletePostRepositoryImpl)
+	deletePostUseCase := post_usecase.NewDeletePostUseCase(deletePostRepositoryImpl, postImageRepositoryImpl, storageService)
 	postHandler := handlers.NewPostHandler(createPostUseCase, getAllPostsUseCase, updatePostByIDUseCase, deletePostUseCase)
 	createWorkerRepositoryImpl := worker.NewCreateWorkerRepositoryImpl(queries)
-	createWorkerUseCase := worker_usecase.NewCreateWorkerUseCase(createWorkerRepositoryImpl)
+	createWorkerUseCase := worker_usecase.NewCreateWorkerUseCase(createWorkerRepositoryImpl, storageService)
 	getAllWorkersRepositoryImpl := worker.NewGetAllWorkersRepositoryImpl(queries)
 	getAllWorkersUseCase := worker_usecase.NewGetAllWorkersUseCase(getAllWorkersRepositoryImpl)
 	getWorkerByIDRepositoryImpl := worker.NewGetWorkerByIDRepositoryImpl(queries)
 	getWorkerByIDUseCase := worker_usecase.NewGetWorkerByIDUseCase(getWorkerByIDRepositoryImpl)
 	updateWorkerByIDRepositoryImpl := worker.NewUpdateWorkerByIDRepositoryImpl(queries)
-	updateWorkerByIDUseCase := worker_usecase.NewUpdateWorkerByIDUseCase(updateWorkerByIDRepositoryImpl)
+	updateWorkerByIDUseCase := worker_usecase.NewUpdateWorkerByIDUseCase(updateWorkerByIDRepositoryImpl, getWorkerByIDRepositoryImpl, storageService)
 	deleteWorkerRepositoryImpl := worker.NewDeleteWorkerRepositoryImpl(queries)
-	deleteWorkerUseCase := worker_usecase.NewDeleteWorkerUseCase(deleteWorkerRepositoryImpl)
+	deleteWorkerUseCase := worker_usecase.NewDeleteWorkerUseCase(deleteWorkerRepositoryImpl, getWorkerByIDRepositoryImpl, storageService)
 	workerHandler := handlers.NewWorkerHandler(createWorkerUseCase, getAllWorkersUseCase, getWorkerByIDUseCase, updateWorkerByIDUseCase, deleteWorkerUseCase)
 	createTimelineRepositoryImpl := timeline.NewCreateTimelineRepositoryImpl(queries)
-	createTimelineUseCase := timeline_usecase.NewCreateTimelineUseCase(createTimelineRepositoryImpl)
+	createTimelineUseCase := timeline_usecase.NewCreateTimelineUseCase(createTimelineRepositoryImpl, storageService)
 	getAllTimelinesRepositoryImpl := timeline.NewGetAllTimelinesRepositoryImpl(queries)
 	getAllTimelinesUseCase := timeline_usecase.NewGetAllTimelinesUseCase(getAllTimelinesRepositoryImpl)
 	getTimelineByIDRepositoryImpl := timeline.NewGetTimelineByIDRepositoryImpl(queries)
 	getTimelineByIDUseCase := timeline_usecase.NewGetTimelineByIDUseCase(getTimelineByIDRepositoryImpl)
 	updateTimelineByIDRepositoryImpl := timeline.NewUpdateTimelineByIDRepositoryImpl(queries)
-	updateTimelineByIDUseCase := timeline_usecase.NewUpdateTimelineByIDUseCase(updateTimelineByIDRepositoryImpl)
+	updateTimelineByIDUseCase := timeline_usecase.NewUpdateTimelineByIDUseCase(updateTimelineByIDRepositoryImpl, getTimelineByIDRepositoryImpl, storageService)
 	deleteTimelineRepositoryImpl := timeline.NewDeleteTimelineRepositoryImpl(queries)
-	deleteTimelineUseCase := timeline_usecase.NewDeleteTimelineUseCase(deleteTimelineRepositoryImpl)
+	deleteTimelineUseCase := timeline_usecase.NewDeleteTimelineUseCase(deleteTimelineRepositoryImpl, getTimelineByIDRepositoryImpl, storageService)
 	timelineHandler := handlers.NewTimelineHandler(createTimelineUseCase, getAllTimelinesUseCase, getTimelineByIDUseCase, updateTimelineByIDUseCase, deleteTimelineUseCase)
 	createAcaciaRepositoryImpl := acacia.NewCreateAcaciaRepositoryImpl(queries)
-	createAcaciaUseCase := acacia_usecase.NewCreateAcaciaUseCase(createAcaciaRepositoryImpl)
+	createAcaciaUseCase := acacia_usecase.NewCreateAcaciaUseCase(createAcaciaRepositoryImpl, storageService)
 	getAllAcaciasRepositoryImpl := acacia.NewGetAllAcaciasRepositoryImpl(queries)
 	getAllAcaciasUseCase := acacia_usecase.NewGetAllAcaciasUseCase(getAllAcaciasRepositoryImpl)
 	getAcaciaByIDRepositoryImpl := acacia.NewGetAcaciaByIDRepositoryImpl(queries)
 	getAcaciaByIDUseCase := acacia_usecase.NewGetAcaciaByIDUseCase(getAcaciaByIDRepositoryImpl)
 	updateAcaciaByIDRepositoryImpl := acacia.NewUpdateAcaciaByIDRepositoryImpl(queries)
-	updateAcaciaByIDUseCase := acacia_usecase.NewUpdateAcaciaByIDUseCase(updateAcaciaByIDRepositoryImpl)
+	updateAcaciaByIDUseCase := acacia_usecase.NewUpdateAcaciaByIDUseCase(updateAcaciaByIDRepositoryImpl, getAcaciaByIDRepositoryImpl, storageService)
 	deleteAcaciaRepositoryImpl := acacia.NewDeleteAcaciaRepositoryImpl(queries)
-	deleteAcaciaUseCase := acacia_usecase.NewDeleteAcaciaUseCase(deleteAcaciaRepositoryImpl)
+	deleteAcaciaUseCase := acacia_usecase.NewDeleteAcaciaUseCase(deleteAcaciaRepositoryImpl, getAcaciaByIDRepositoryImpl, storageService)
 	acaciaHandler := handlers.NewAcaciaHandler(createAcaciaUseCase, getAllAcaciasUseCase, getAcaciaByIDUseCase, updateAcaciaByIDUseCase, deleteAcaciaUseCase)
 	createLibraryRepositoryImpl := library.NewCreateLibraryRepositoryImpl(queries)
-	createLibraryUseCase := library_usecase.NewCreateLibraryUseCase(createLibraryRepositoryImpl)
+	createLibraryUseCase := library_usecase.NewCreateLibraryUseCase(createLibraryRepositoryImpl, storageService)
 	getAllLibrariesRepositoryImpl := library.NewGetAllLibrariesRepositoryImpl(queries)
 	getAllLibrariesUseCase := library_usecase.NewGetAllLibrariesUseCase(getAllLibrariesRepositoryImpl)
 	getLibraryByIDRepositoryImpl := library.NewGetLibraryByIDRepositoryImpl(queries)
@@ -112,9 +114,9 @@ func InitializeApp(cfg *config.Config) (*App, error) {
 	getLibrariesByDegreeRepositoryImpl := library.NewGetLibrariesByDegreeRepositoryImpl(queries)
 	getLibrariesByDegreeUseCase := library_usecase.NewGetLibrariesByDegreeUseCase(getLibrariesByDegreeRepositoryImpl)
 	updateLibraryByIDRepositoryImpl := library.NewUpdateLibraryByIDRepositoryImpl(queries)
-	updateLibraryByIDUseCase := library_usecase.NewUpdateLibraryByIDUseCase(updateLibraryByIDRepositoryImpl)
+	updateLibraryByIDUseCase := library_usecase.NewUpdateLibraryByIDUseCase(updateLibraryByIDRepositoryImpl, getLibraryByIDRepositoryImpl, storageService)
 	deleteLibraryRepositoryImpl := library.NewDeleteLibraryRepositoryImpl(queries)
-	deleteLibraryUseCase := library_usecase.NewDeleteLibraryUseCase(deleteLibraryRepositoryImpl)
+	deleteLibraryUseCase := library_usecase.NewDeleteLibraryUseCase(deleteLibraryRepositoryImpl, getLibraryByIDRepositoryImpl, storageService)
 	libraryHandler := handlers.NewLibraryHandler(createLibraryUseCase, getAllLibrariesUseCase, getLibraryByIDUseCase, getLibrariesByDegreeUseCase, updateLibraryByIDUseCase, deleteLibraryUseCase)
 	healthHandler := handlers.NewHealthHandler(db)
 	authMiddleware := middlewares.NewAuthMiddleware(jwtService)
@@ -165,7 +167,9 @@ var AcaciaUseCaseSet = wire.NewSet(acacia_usecase.NewCreateAcaciaUseCase, acacia
 var LibraryUseCaseSet = wire.NewSet(library_usecase.NewCreateLibraryUseCase, library_usecase.NewGetAllLibrariesUseCase, library_usecase.NewGetLibraryByIDUseCase, library_usecase.NewGetLibrariesByDegreeUseCase, library_usecase.NewUpdateLibraryByIDUseCase, library_usecase.NewDeleteLibraryUseCase)
 
 // Infra Set
-var InfraSet = wire.NewSet(database.ProvideDatabase, database.ProvideQueries, provideJWTService)
+var InfraSet = wire.NewSet(database.ProvideDatabase, database.ProvideQueries, provideJWTService,
+	provideStorageService,
+)
 
 // Web Set
 var WebSet = wire.NewSet(handlers.NewUserHandler, handlers.NewAuthHandler, handlers.NewPostHandler, handlers.NewWorkerHandler, handlers.NewTimelineHandler, handlers.NewAcaciaHandler, handlers.NewLibraryHandler, handlers.NewHealthHandler, middlewares.NewAuthMiddleware, routes.NewRouter, provideChiRouter,
@@ -174,6 +178,10 @@ var WebSet = wire.NewSet(handlers.NewUserHandler, handlers.NewAuthHandler, handl
 
 func provideJWTService(cfg *config.Config) *auth.JWTService {
 	return auth.NewJWTService(cfg.JWTSecret, cfg.GetJWTDuration())
+}
+
+func provideStorageService(cfg *config.Config) storage.StorageService {
+	return storage.NewFTPStorageService(cfg)
 }
 
 func provideChiRouter(router *routes.Router) *chi.Mux {

@@ -35,7 +35,7 @@ func (r *CreateAcaciaRepositoryImpl) CreateAcacia(acacia *entity.Acacia) (*entit
 		Terms:       []byte(termsJSON),
 		IsPresident: acacia.IsPresident,
 		Deceased:    acacia.Deceased,
-		ImageData:   acacia.ImageData,
+		ImageUrl:    acacia.ImageURL,
 	}
 
 	_, err = r.queries.CreateAcacia(ctx, params)
@@ -63,7 +63,7 @@ func dbAcaciaToEntity(acaciaDB db.Acacia) (*entity.Acacia, error) {
 		Terms:       terms,
 		IsPresident: acaciaDB.IsPresident,
 		Deceased:    acaciaDB.Deceased,
-		ImageData:   acaciaDB.ImageData,
+		ImageURL:    acaciaDB.ImageUrl,
 		CreatedAt:   acaciaDB.CreatedAt.Time,
 		UpdatedAt:   acaciaDB.UpdatedAt.Time,
 	}, nil

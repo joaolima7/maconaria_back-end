@@ -2,11 +2,14 @@ package acacia_usecase
 
 import (
 	"encoding/base64"
+	"fmt"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/apperrors"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/entity"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/repositories/acacia"
+	"github.com/joaolima7/maconaria_back-end/internal/infra/storage"
 )
 
 type UpdateAcaciaByIDInputDTO struct {
@@ -15,7 +18,7 @@ type UpdateAcaciaByIDInputDTO struct {
 	Terms       []string `json:"terms"`
 	IsPresident bool     `json:"is_president"`
 	Deceased    bool     `json:"deceased"`
-	ImageData   string   `json:"image_data" validate:"required"`
+	ImageData   string   `json:"image_data,omitempty"`
 }
 
 type UpdateAcaciaByIDOutputDTO struct {
@@ -24,33 +27,58 @@ type UpdateAcaciaByIDOutputDTO struct {
 	Terms       []string  `json:"terms"`
 	IsPresident bool      `json:"is_president"`
 	Deceased    bool      `json:"deceased"`
-	ImageData   string    `json:"image_data"`
+	ImageURL    string    `json:"image_url"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 }
 
 type UpdateAcaciaByIDUseCase struct {
-	Repository acacia.UpdateAcaciaByIDRepository
+	Repository     acacia.UpdateAcaciaByIDRepository
+	GetRepository  acacia.GetAcaciaByIDRepository
+	StorageService storage.StorageService
 }
 
-func NewUpdateAcaciaByIDUseCase(repository acacia.UpdateAcaciaByIDRepository) *UpdateAcaciaByIDUseCase {
+func NewUpdateAcaciaByIDUseCase(
+	repository acacia.UpdateAcaciaByIDRepository,
+	getRepository acacia.GetAcaciaByIDRepository,
+	storageService storage.StorageService,
+) *UpdateAcaciaByIDUseCase {
 	return &UpdateAcaciaByIDUseCase{
-		Repository: repository,
+		Repository:     repository,
+		GetRepository:  getRepository,
+		StorageService: storageService,
 	}
 }
 
 func (uc *UpdateAcaciaByIDUseCase) Execute(input UpdateAcaciaByIDInputDTO) (*UpdateAcaciaByIDOutputDTO, error) {
-	if input.ImageData == "" {
-		return nil, apperrors.NewValidationError("imagem", "A imagem é obrigatória!")
+
+	existingAcacia, err := uc.GetRepository.GetAcaciaByID(input.ID)
+	if err != nil {
+		return nil, err
 	}
 
 	if input.IsPresident && len(input.Terms) == 0 {
 		return nil, apperrors.NewValidationError("mandatos", "Os períodos são obrigatórios para presidentes!")
 	}
 
-	imageData, err := base64.StdEncoding.DecodeString(input.ImageData)
-	if err != nil {
-		return nil, apperrors.NewValidationError("imagem", "Imagem em formato inválido!")
+	imageURL := existingAcacia.ImageURL
+	var oldImageURL string
+
+	if input.ImageData != "" {
+		imageData, err := base64.StdEncoding.DecodeString(input.ImageData)
+		if err != nil {
+			return nil, apperrors.NewValidationError("imagem", "Imagem em formato inválido!")
+		}
+
+		filename := fmt.Sprintf("acacia_%s_%s.jpg", input.ID, uuid.New().String())
+
+		newImageURL, err := uc.StorageService.UploadImage(imageData, filename, "acacias")
+		if err != nil {
+			return nil, apperrors.NewInternalError("Erro ao fazer upload da imagem", err)
+		}
+
+		oldImageURL = imageURL
+		imageURL = newImageURL
 	}
 
 	acaciaEntity := &entity.Acacia{
@@ -59,22 +87,29 @@ func (uc *UpdateAcaciaByIDUseCase) Execute(input UpdateAcaciaByIDInputDTO) (*Upd
 		Terms:       input.Terms,
 		IsPresident: input.IsPresident,
 		Deceased:    input.Deceased,
-		ImageData:   imageData,
+		ImageURL:    imageURL,
 		UpdatedAt:   time.Now(),
 	}
 
 	if err := acaciaEntity.Validate(); err != nil {
+
+		if oldImageURL != "" {
+			_ = uc.StorageService.DeleteImage(imageURL, "acacias")
+		}
 		return nil, err
 	}
 
 	acaciaUpdated, err := uc.Repository.UpdateAcaciaByID(acaciaEntity)
 	if err != nil {
+
+		if oldImageURL != "" {
+			_ = uc.StorageService.DeleteImage(imageURL, "acacias")
+		}
 		return nil, err
 	}
 
-	imageDataBase64 := ""
-	if len(acaciaUpdated.ImageData) > 0 {
-		imageDataBase64 = base64.StdEncoding.EncodeToString(acaciaUpdated.ImageData)
+	if oldImageURL != "" {
+		_ = uc.StorageService.DeleteImage(oldImageURL, "acacias")
 	}
 
 	return &UpdateAcaciaByIDOutputDTO{
@@ -83,7 +118,7 @@ func (uc *UpdateAcaciaByIDUseCase) Execute(input UpdateAcaciaByIDInputDTO) (*Upd
 		Terms:       acaciaUpdated.Terms,
 		IsPresident: acaciaUpdated.IsPresident,
 		Deceased:    acaciaUpdated.Deceased,
-		ImageData:   imageDataBase64,
+		ImageURL:    acaciaUpdated.ImageURL,
 		CreatedAt:   acaciaUpdated.CreatedAt,
 		UpdatedAt:   acaciaUpdated.UpdatedAt,
 	}, nil

@@ -11,8 +11,8 @@ type Library struct {
 	Title            string
 	SmallDescription string
 	Degree           UserDegree
-	FileData         []byte
-	CoverData        []byte
+	FileURL          string
+	CoverURL         string
 	Link             string
 	CreatedAt        time.Time
 	UpdatedAt        time.Time
@@ -23,8 +23,8 @@ func NewLibrary(
 	title string,
 	smallDescription string,
 	degree UserDegree,
-	fileData []byte,
-	coverData []byte,
+	fileURL string,
+	coverURL string,
 	link string,
 ) (*Library, error) {
 	library := &Library{
@@ -32,8 +32,8 @@ func NewLibrary(
 		Title:            title,
 		SmallDescription: smallDescription,
 		Degree:           degree,
-		FileData:         fileData,
-		CoverData:        coverData,
+		FileURL:          fileURL,
+		CoverURL:         coverURL,
 		Link:             link,
 		CreatedAt:        time.Now(),
 		UpdatedAt:        time.Now(),
@@ -54,6 +54,9 @@ func (l *Library) Validate() error {
 		return err
 	}
 	if err := l.ValidateDegree(); err != nil {
+		return err
+	}
+	if err := l.ValidateContent(); err != nil {
 		return err
 	}
 	return nil
@@ -86,12 +89,20 @@ func (l *Library) ValidateDegree() error {
 	return apperrors.NewValidationError("grau", "O grau deve ser 'apprentice', 'companion' ou 'master'!")
 }
 
-func (l *Library) UpdateFile(fileData []byte) {
-	l.FileData = fileData
+func (l *Library) ValidateContent() error {
+
+	if l.FileURL == "" && l.Link == "" {
+		return apperrors.NewValidationError("conteúdo", "É necessário fornecer um arquivo PDF ou um link!")
+	}
+	return nil
+}
+
+func (l *Library) UpdateFile(fileURL string) {
+	l.FileURL = fileURL
 	l.UpdatedAt = time.Now()
 }
 
-func (l *Library) UpdateCover(coverData []byte) {
-	l.CoverData = coverData
+func (l *Library) UpdateCover(coverURL string) {
+	l.CoverURL = coverURL
 	l.UpdatedAt = time.Now()
 }

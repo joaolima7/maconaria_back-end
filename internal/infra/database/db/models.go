@@ -148,7 +148,7 @@ type Acacia struct {
 	Terms       json.RawMessage
 	IsPresident bool
 	Deceased    bool
-	ImageData   []byte
+	ImageUrl    string
 	CreatedAt   sql.NullTime
 	UpdatedAt   sql.NullTime
 }
@@ -158,8 +158,8 @@ type Library struct {
 	Title            string
 	SmallDescription string
 	Degree           LibrariesDegree
-	FileData         sql.NullString
-	CoverData        sql.NullString
+	FileUrl          sql.NullString
+	CoverUrl         sql.NullString
 	Link             sql.NullString
 	CreatedAt        sql.NullTime
 	UpdatedAt        sql.NullTime
@@ -184,14 +184,14 @@ type Post struct {
 type PostImage struct {
 	ID        string
 	PostID    string
-	ImageData []byte
+	ImageUrl  string
 	CreatedAt sql.NullTime
 }
 
 type Timeline struct {
 	ID          string
 	Period      string
-	PdfData     []byte
+	PdfUrl      string
 	IsHighlight bool
 	CreatedAt   sql.NullTime
 	UpdatedAt   sql.NullTime
@@ -223,7 +223,7 @@ type Worker struct {
 	InstallationDate  time.Time
 	EmeritusMasonDate sql.NullTime
 	ProvectMasonDate  sql.NullTime
-	ImageData         []byte
+	ImageUrl          string
 	Deceased          bool
 	CreatedAt         sql.NullTime
 	UpdatedAt         sql.NullTime

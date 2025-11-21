@@ -19,7 +19,7 @@ type Worker struct {
 	InstallationDate  time.Time
 	EmeritusMasonDate *time.Time
 	ProvectMasonDate  *time.Time
-	ImageData         []byte
+	ImageURL          string
 	Deceased          bool
 	CreatedAt         time.Time
 	UpdatedAt         time.Time
@@ -38,7 +38,7 @@ func NewWorker(
 	installationDate time.Time,
 	emeritusMasonDate *time.Time,
 	provectMasonDate *time.Time,
-	imageData []byte,
+	imageURL string,
 	deceased bool,
 ) (*Worker, error) {
 	worker := &Worker{
@@ -54,7 +54,7 @@ func NewWorker(
 		InstallationDate:  installationDate,
 		EmeritusMasonDate: emeritusMasonDate,
 		ProvectMasonDate:  provectMasonDate,
-		ImageData:         imageData,
+		ImageURL:          imageURL,
 		Deceased:          deceased,
 		CreatedAt:         time.Now(),
 		UpdatedAt:         time.Now(),
@@ -111,8 +111,8 @@ func (w *Worker) ValidateRegistration() error {
 }
 
 func (w *Worker) ValidateImage() error {
-	if len(w.ImageData) == 0 {
-		return apperrors.NewValidationError("imagem", "A imagem é obrigatória!")
+	if w.ImageURL == "" {
+		return apperrors.NewValidationError("imagem", "A URL da imagem é obrigatória!")
 	}
 	return nil
 }
@@ -147,8 +147,8 @@ func (w *Worker) ValidateDates() error {
 	return nil
 }
 
-func (w *Worker) UpdateImage(imageData []byte) {
-	w.ImageData = imageData
+func (w *Worker) UpdateImage(imageURL string) {
+	w.ImageURL = imageURL
 	w.UpdatedAt = time.Now()
 }
 

@@ -15,7 +15,7 @@ const createWorker = `-- name: CreateWorker :execresult
 INSERT INTO workers (
   id, number, name, registration, birth_date,
   initiation_date, elevation_date, exaltation_date, affiliation_date, installation_date,
-  emeritus_mason_date, provect_mason_date, image_data, deceased
+  emeritus_mason_date, provect_mason_date, image_url, deceased
 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `
 
@@ -32,7 +32,7 @@ type CreateWorkerParams struct {
 	InstallationDate  time.Time
 	EmeritusMasonDate sql.NullTime
 	ProvectMasonDate  sql.NullTime
-	ImageData         []byte
+	ImageUrl          string
 	Deceased          bool
 }
 
@@ -50,7 +50,7 @@ func (q *Queries) CreateWorker(ctx context.Context, arg CreateWorkerParams) (sql
 		arg.InstallationDate,
 		arg.EmeritusMasonDate,
 		arg.ProvectMasonDate,
-		arg.ImageData,
+		arg.ImageUrl,
 		arg.Deceased,
 	)
 }
@@ -68,7 +68,7 @@ const getAllWorkers = `-- name: GetAllWorkers :many
 SELECT
   id, number, name, registration, birth_date,
   initiation_date, elevation_date, exaltation_date, affiliation_date, installation_date,
-  emeritus_mason_date, provect_mason_date, image_data, deceased,
+  emeritus_mason_date, provect_mason_date, image_url, deceased,
   created_at, updated_at
 FROM workers
 ORDER BY number ASC
@@ -96,7 +96,7 @@ func (q *Queries) GetAllWorkers(ctx context.Context) ([]Worker, error) {
 			&i.InstallationDate,
 			&i.EmeritusMasonDate,
 			&i.ProvectMasonDate,
-			&i.ImageData,
+			&i.ImageUrl,
 			&i.Deceased,
 			&i.CreatedAt,
 			&i.UpdatedAt,
@@ -118,7 +118,7 @@ const getWorkerByID = `-- name: GetWorkerByID :one
 SELECT
   id, number, name, registration, birth_date,
   initiation_date, elevation_date, exaltation_date, affiliation_date, installation_date,
-  emeritus_mason_date, provect_mason_date, image_data, deceased,
+  emeritus_mason_date, provect_mason_date, image_url, deceased,
   created_at, updated_at
 FROM workers
 WHERE id = ?
@@ -140,7 +140,7 @@ func (q *Queries) GetWorkerByID(ctx context.Context, id string) (Worker, error) 
 		&i.InstallationDate,
 		&i.EmeritusMasonDate,
 		&i.ProvectMasonDate,
-		&i.ImageData,
+		&i.ImageUrl,
 		&i.Deceased,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -152,7 +152,7 @@ const getWorkerByNumber = `-- name: GetWorkerByNumber :one
 SELECT
   id, number, name, registration, birth_date,
   initiation_date, elevation_date, exaltation_date, affiliation_date, installation_date,
-  emeritus_mason_date, provect_mason_date, image_data, deceased,
+  emeritus_mason_date, provect_mason_date, image_url, deceased,
   created_at, updated_at
 FROM workers
 WHERE number = ?
@@ -174,7 +174,7 @@ func (q *Queries) GetWorkerByNumber(ctx context.Context, number int32) (Worker, 
 		&i.InstallationDate,
 		&i.EmeritusMasonDate,
 		&i.ProvectMasonDate,
-		&i.ImageData,
+		&i.ImageUrl,
 		&i.Deceased,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -186,7 +186,7 @@ const getWorkerByRegistration = `-- name: GetWorkerByRegistration :one
 SELECT
   id, number, name, registration, birth_date,
   initiation_date, elevation_date, exaltation_date, affiliation_date, installation_date,
-  emeritus_mason_date, provect_mason_date, image_data, deceased,
+  emeritus_mason_date, provect_mason_date, image_url, deceased,
   created_at, updated_at
 FROM workers
 WHERE registration = ?
@@ -208,7 +208,7 @@ func (q *Queries) GetWorkerByRegistration(ctx context.Context, registration stri
 		&i.InstallationDate,
 		&i.EmeritusMasonDate,
 		&i.ProvectMasonDate,
-		&i.ImageData,
+		&i.ImageUrl,
 		&i.Deceased,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -222,7 +222,7 @@ SET
   number = ?, name = ?, registration = ?, birth_date = ?,
   initiation_date = ?, elevation_date = ?, exaltation_date = ?, affiliation_date = ?,
   installation_date = ?, emeritus_mason_date = ?, provect_mason_date = ?,
-  image_data = ?, deceased = ?,
+  image_url = ?, deceased = ?,
   updated_at = CURRENT_TIMESTAMP
 WHERE id = ?
 `
@@ -239,7 +239,7 @@ type UpdateWorkerParams struct {
 	InstallationDate  time.Time
 	EmeritusMasonDate sql.NullTime
 	ProvectMasonDate  sql.NullTime
-	ImageData         []byte
+	ImageUrl          string
 	Deceased          bool
 	ID                string
 }
@@ -257,7 +257,7 @@ func (q *Queries) UpdateWorker(ctx context.Context, arg UpdateWorkerParams) (sql
 		arg.InstallationDate,
 		arg.EmeritusMasonDate,
 		arg.ProvectMasonDate,
-		arg.ImageData,
+		arg.ImageUrl,
 		arg.Deceased,
 		arg.ID,
 	)

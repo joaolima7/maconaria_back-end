@@ -13,7 +13,7 @@ type Acacia struct {
 	Terms       []string
 	IsPresident bool
 	Deceased    bool
-	ImageData   []byte
+	ImageURL    string
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }
@@ -24,7 +24,7 @@ func NewAcacia(
 	terms []string,
 	isPresident bool,
 	deceased bool,
-	imageData []byte,
+	imageURL string,
 ) (*Acacia, error) {
 	acacia := &Acacia{
 		ID:          id,
@@ -32,7 +32,7 @@ func NewAcacia(
 		Terms:       terms,
 		IsPresident: isPresident,
 		Deceased:    deceased,
-		ImageData:   imageData,
+		ImageURL:    imageURL,
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),
 	}
@@ -68,22 +68,21 @@ func (a *Acacia) ValidateName() error {
 }
 
 func (a *Acacia) ValidateImage() error {
-	if len(a.ImageData) == 0 {
-		return apperrors.NewValidationError("imagem", "A imagem é obrigatória!")
+	if a.ImageURL == "" {
+		return apperrors.NewValidationError("imagem", "A URL da imagem é obrigatória!")
 	}
 	return nil
 }
 
 func (a *Acacia) ValidateTerms() error {
-
 	if a.IsPresident && len(a.Terms) == 0 {
 		return apperrors.NewValidationError("mandatos", "Os períodos são obrigatórios para presidentes!")
 	}
 	return nil
 }
 
-func (a *Acacia) UpdateImage(imageData []byte) {
-	a.ImageData = imageData
+func (a *Acacia) UpdateImage(imageURL string) {
+	a.ImageURL = imageURL
 	a.UpdatedAt = time.Now()
 }
 

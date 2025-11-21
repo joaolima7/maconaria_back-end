@@ -11,18 +11,18 @@ import (
 )
 
 const createPostImage = `-- name: CreatePostImage :execresult
-INSERT INTO post_images (id, post_id, image_data)
+INSERT INTO post_images (id, post_id, image_url)
 VALUES (?, ?, ?)
 `
 
 type CreatePostImageParams struct {
-	ID        string
-	PostID    string
-	ImageData []byte
+	ID       string
+	PostID   string
+	ImageUrl string
 }
 
 func (q *Queries) CreatePostImage(ctx context.Context, arg CreatePostImageParams) (sql.Result, error) {
-	return q.db.ExecContext(ctx, createPostImage, arg.ID, arg.PostID, arg.ImageData)
+	return q.db.ExecContext(ctx, createPostImage, arg.ID, arg.PostID, arg.ImageUrl)
 }
 
 const deletePostImageByID = `-- name: DeletePostImageByID :exec
@@ -44,7 +44,7 @@ func (q *Queries) DeletePostImagesByPostID(ctx context.Context, postID string) e
 }
 
 const getPostImageByID = `-- name: GetPostImageByID :one
-SELECT id, post_id, image_data, created_at
+SELECT id, post_id, image_url, created_at
 FROM post_images
 WHERE id = ?
 `
@@ -55,14 +55,14 @@ func (q *Queries) GetPostImageByID(ctx context.Context, id string) (PostImage, e
 	err := row.Scan(
 		&i.ID,
 		&i.PostID,
-		&i.ImageData,
+		&i.ImageUrl,
 		&i.CreatedAt,
 	)
 	return i, err
 }
 
 const getPostImages = `-- name: GetPostImages :many
-SELECT id, post_id, image_data, created_at
+SELECT id, post_id, image_url, created_at
 FROM post_images
 WHERE post_id = ?
 ORDER BY created_at
@@ -80,7 +80,7 @@ func (q *Queries) GetPostImages(ctx context.Context, postID string) ([]PostImage
 		if err := rows.Scan(
 			&i.ID,
 			&i.PostID,
-			&i.ImageData,
+			&i.ImageUrl,
 			&i.CreatedAt,
 		); err != nil {
 			return nil, err
