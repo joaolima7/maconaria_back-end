@@ -67,64 +67,78 @@ func (rt *Router) Setup() *chi.Mux {
 
 	r.Route("/api", func(r chi.Router) {
 
-		r.Group(func(r chi.Router) {
-			r.Post("/auth/login", rt.AuthHandler.Login)
+		// ========== AUTH (público) ==========
+		r.Post("/auth/login", rt.AuthHandler.Login)
 
-			r.Get("/posts", rt.PostHandler.GetAllPosts)
-
-			r.Get("/workers", rt.WorkerHandler.GetAllWorkers)
-
-			r.Get("/timelines", rt.TimelineHandler.GetAllTimelines)
-
-			r.Get("/acacias", rt.AcaciaHandler.GetAllAcacias)
-
-			r.Get("/libraries", rt.LibraryHandler.GetAllLibraries)
-		})
-
+		// ========== POSTS ==========
+		// GET público
+		r.Get("/posts", rt.PostHandler.GetAllPosts)
+		// CUD protegido
 		r.Group(func(r chi.Router) {
 			r.Use(rt.AuthMiddleware.Authenticate)
+			r.Post("/posts", rt.PostHandler.CreatePost)
+			r.Put("/posts/{id}", rt.PostHandler.UpdatePost)
+			r.Delete("/posts/{id}", rt.PostHandler.DeletePost)
+		})
 
+		// ========== WORKERS ==========
+		// GET público
+		r.Get("/workers", rt.WorkerHandler.GetAllWorkers)
+		// GET by ID e CUD protegidos
+		r.Group(func(r chi.Router) {
+			r.Use(rt.AuthMiddleware.Authenticate)
+			r.Get("/workers/{id}", rt.WorkerHandler.GetWorkerByID)
+			r.Post("/workers", rt.WorkerHandler.CreateWorker)
+			r.Put("/workers/{id}", rt.WorkerHandler.UpdateWorker)
+			r.Delete("/workers/{id}", rt.WorkerHandler.DeleteWorker)
+		})
+
+		// ========== TIMELINES ==========
+		// GET público
+		r.Get("/timelines", rt.TimelineHandler.GetAllTimelines)
+		// GET by ID e CUD protegidos
+		r.Group(func(r chi.Router) {
+			r.Use(rt.AuthMiddleware.Authenticate)
+			r.Get("/timelines/{id}", rt.TimelineHandler.GetTimelineByID)
+			r.Post("/timelines", rt.TimelineHandler.CreateTimeline)
+			r.Put("/timelines/{id}", rt.TimelineHandler.UpdateTimeline)
+			r.Delete("/timelines/{id}", rt.TimelineHandler.DeleteTimeline)
+		})
+
+		// ========== ACACIAS ==========
+		// GET público
+		r.Get("/acacias", rt.AcaciaHandler.GetAllAcacias)
+		// GET by ID e CUD protegidos
+		r.Group(func(r chi.Router) {
+			r.Use(rt.AuthMiddleware.Authenticate)
+			r.Get("/acacias/{id}", rt.AcaciaHandler.GetAcaciaByID)
+			r.Post("/acacias", rt.AcaciaHandler.CreateAcacia)
+			r.Put("/acacias/{id}", rt.AcaciaHandler.UpdateAcacia)
+			r.Delete("/acacias/{id}", rt.AcaciaHandler.DeleteAcacia)
+		})
+
+		// ========== LIBRARIES ==========
+		// GET público
+		r.Get("/libraries", rt.LibraryHandler.GetAllLibraries)
+		// GET by ID, degree e CUD protegidos
+		r.Group(func(r chi.Router) {
+			r.Use(rt.AuthMiddleware.Authenticate)
+			r.Get("/libraries/{id}", rt.LibraryHandler.GetLibraryByID)
+			r.Get("/libraries/degree/{degree}", rt.LibraryHandler.GetLibrariesByDegree)
+			r.Post("/libraries", rt.LibraryHandler.CreateLibrary)
+			r.Put("/libraries/{id}", rt.LibraryHandler.UpdateLibrary)
+			r.Delete("/libraries/{id}", rt.LibraryHandler.DeleteLibrary)
+		})
+
+		// ========== USERS (todas protegidas) ==========
+		r.Group(func(r chi.Router) {
+			r.Use(rt.AuthMiddleware.Authenticate)
 			r.Route("/users", func(r chi.Router) {
 				r.Get("/", rt.UserHandler.GetAllUsers)
 				r.Get("/{id}", rt.UserHandler.GetUserById)
 				r.Post("/", rt.UserHandler.CreateUser)
 				r.Put("/{id}", rt.UserHandler.UpdateUser)
 				r.Patch("/{id}/password", rt.UserHandler.UpdateUserPassword)
-			})
-
-			r.Route("/posts", func(r chi.Router) {
-				r.Post("/", rt.PostHandler.CreatePost)
-				r.Put("/{id}", rt.PostHandler.UpdatePost)
-				r.Delete("/{id}", rt.PostHandler.DeletePost)
-			})
-
-			r.Route("/workers", func(r chi.Router) {
-				r.Get("/{id}", rt.WorkerHandler.GetWorkerByID)
-				r.Post("/", rt.WorkerHandler.CreateWorker)
-				r.Put("/{id}", rt.WorkerHandler.UpdateWorker)
-				r.Delete("/{id}", rt.WorkerHandler.DeleteWorker)
-			})
-
-			r.Route("/timelines", func(r chi.Router) {
-				r.Get("/{id}", rt.TimelineHandler.GetTimelineByID)
-				r.Post("/", rt.TimelineHandler.CreateTimeline)
-				r.Put("/{id}", rt.TimelineHandler.UpdateTimeline)
-				r.Delete("/{id}", rt.TimelineHandler.DeleteTimeline)
-			})
-
-			r.Route("/acacias", func(r chi.Router) {
-				r.Get("/{id}", rt.AcaciaHandler.GetAcaciaByID)
-				r.Post("/", rt.AcaciaHandler.CreateAcacia)
-				r.Put("/{id}", rt.AcaciaHandler.UpdateAcacia)
-				r.Delete("/{id}", rt.AcaciaHandler.DeleteAcacia)
-			})
-
-			r.Route("/libraries", func(r chi.Router) {
-				r.Get("/{id}", rt.LibraryHandler.GetLibraryByID)
-				r.Get("/degree/{degree}", rt.LibraryHandler.GetLibrariesByDegree)
-				r.Post("/", rt.LibraryHandler.CreateLibrary)
-				r.Put("/{id}", rt.LibraryHandler.UpdateLibrary)
-				r.Delete("/{id}", rt.LibraryHandler.DeleteLibrary)
 			})
 		})
 	})
