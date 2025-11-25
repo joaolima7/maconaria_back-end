@@ -71,27 +71,6 @@ func (rt *Router) Setup() *chi.Mux {
 			r.Route("/auth", func(r chi.Router) {
 				r.Post("/login", rt.AuthHandler.Login)
 			})
-
-			r.Route("/posts", func(r chi.Router) {
-				r.Get("/", rt.PostHandler.GetAllPosts)
-			})
-
-			r.Route("/workers", func(r chi.Router) {
-				r.Get("/", rt.WorkerHandler.GetAllWorkers)
-			})
-
-			r.Route("/timelines", func(r chi.Router) {
-				r.Get("/", rt.TimelineHandler.GetAllTimelines)
-			})
-
-			r.Route("/acacias", func(r chi.Router) {
-				r.Get("/", rt.AcaciaHandler.GetAllAcacias)
-			})
-
-			r.Route("/libraries", func(r chi.Router) {
-				r.Get("/", rt.LibraryHandler.GetAllLibraries)
-
-			})
 		})
 
 		r.Group(func(r chi.Router) {
@@ -107,40 +86,42 @@ func (rt *Router) Setup() *chi.Mux {
 
 			r.Route("/posts", func(r chi.Router) {
 				r.Post("/", rt.PostHandler.CreatePost)
+				r.Get("/", rt.PostHandler.GetAllPosts)
 				r.Put("/{id}", rt.PostHandler.UpdatePost)
 				r.Delete("/{id}", rt.PostHandler.DeletePost)
 			})
 
 			r.Route("/workers", func(r chi.Router) {
 				r.Post("/", rt.WorkerHandler.CreateWorker)
+				r.Get("/", rt.WorkerHandler.GetAllWorkers)
+				r.Get("/{id}", rt.WorkerHandler.GetWorkerByID)
 				r.Put("/{id}", rt.WorkerHandler.UpdateWorker)
 				r.Delete("/{id}", rt.WorkerHandler.DeleteWorker)
-				r.Get("/{id}", rt.WorkerHandler.GetWorkerByID)
-
 			})
 
 			r.Route("/timelines", func(r chi.Router) {
 				r.Post("/", rt.TimelineHandler.CreateTimeline)
+				r.Get("/", rt.TimelineHandler.GetAllTimelines)
+				r.Get("/{id}", rt.TimelineHandler.GetTimelineByID)
 				r.Put("/{id}", rt.TimelineHandler.UpdateTimeline)
 				r.Delete("/{id}", rt.TimelineHandler.DeleteTimeline)
-				r.Get("/{id}", rt.TimelineHandler.GetTimelineByID)
-
 			})
 
 			r.Route("/acacias", func(r chi.Router) {
 				r.Post("/", rt.AcaciaHandler.CreateAcacia)
+				r.Get("/", rt.AcaciaHandler.GetAllAcacias)
+				r.Get("/{id}", rt.AcaciaHandler.GetAcaciaByID)
 				r.Put("/{id}", rt.AcaciaHandler.UpdateAcacia)
 				r.Delete("/{id}", rt.AcaciaHandler.DeleteAcacia)
-				r.Get("/{id}", rt.AcaciaHandler.GetAcaciaByID)
-
 			})
 
 			r.Route("/libraries", func(r chi.Router) {
 				r.Post("/", rt.LibraryHandler.CreateLibrary)
-				r.Put("/{id}", rt.LibraryHandler.UpdateLibrary)
-				r.Delete("/{id}", rt.LibraryHandler.DeleteLibrary)
+				r.Get("/", rt.LibraryHandler.GetAllLibraries)
 				r.Get("/{id}", rt.LibraryHandler.GetLibraryByID)
 				r.Get("/degree/{degree}", rt.LibraryHandler.GetLibrariesByDegree)
+				r.Put("/{id}", rt.LibraryHandler.UpdateLibrary)
+				r.Delete("/{id}", rt.LibraryHandler.DeleteLibrary)
 			})
 		})
 	})
