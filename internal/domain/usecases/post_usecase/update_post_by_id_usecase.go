@@ -1,8 +1,10 @@
 package post_usecase
 
 import (
+	"context"
 	"encoding/base64"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/google/uuid"
@@ -24,7 +26,7 @@ type UpdatePostByIDInputDTO struct {
 	Location            *string        `json:"location,omitempty"`
 	IsFeatured          bool           `json:"is_featured"`
 	PostType            types.PostType `json:"post_type" validate:"required"`
-	Images              []string       `json:"images,omitempty"`
+	Images              *[]string      `json:"images,omitempty"`
 }
 
 type UpdatePostByIDOutputDTO struct {
@@ -64,6 +66,9 @@ func NewUpdatePostByIDUseCase(
 
 func (uc *UpdatePostByIDUseCase) Execute(input UpdatePostByIDInputDTO) (*UpdatePostByIDOutputDTO, error) {
 
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
 	oldImages, err := uc.ImageRepository.GetPostImages(input.ID)
 	if err != nil {
 		return nil, err
@@ -83,36 +88,103 @@ func (uc *UpdatePostByIDUseCase) Execute(input UpdatePostByIDInputDTO) (*UpdateP
 		UpdatedAt:           time.Now(),
 	}
 
-	if len(input.Images) > 0 {
-		post.Images = make([]*entity.PostImage, len(input.Images))
-		for i, imageBase64 := range input.Images {
-			imageData, err := base64.StdEncoding.DecodeString(imageBase64)
-			if err != nil {
-				return nil, apperrors.NewValidationError("images", "Imagem inválida em formato base64")
-			}
+	var shouldUpdateImages bool
+	var newImages []*entity.PostImage
+	var uploadedURLs []string
 
-			filename := fmt.Sprintf("post_%s_img_%d_%s.jpg", post.ID, i, uuid.New().String())
+	if input.Images == nil {
 
-			imageURL, err := uc.StorageService.UploadImage(imageData, filename, "posts")
-			if err != nil {
-				return nil, apperrors.NewInternalError("Erro ao fazer upload da imagem", err)
-			}
+		shouldUpdateImages = false
+		post.Images = oldImages
+	} else if len(*input.Images) == 0 {
 
-			post.Images[i] = entity.NewPostImage("", post.ID, imageURL)
+		shouldUpdateImages = true
+		post.Images = []*entity.PostImage{}
+	} else {
+
+		shouldUpdateImages = true
+
+		const maxWorkers = 5
+		semaphore := make(chan struct{}, maxWorkers)
+		resultChan := make(chan imageUploadResult, len(*input.Images))
+		var wg sync.WaitGroup
+
+		for i, imageBase64 := range *input.Images {
+			wg.Add(1)
+			go func(index int, imgBase64 string) {
+				defer wg.Done()
+
+				semaphore <- struct{}{}
+				defer func() { <-semaphore }()
+
+				imageData, err := base64.StdEncoding.DecodeString(imgBase64)
+				if err != nil {
+					resultChan <- imageUploadResult{
+						index: index,
+						err:   apperrors.NewValidationError("images", fmt.Sprintf("Imagem %d inválida em formato base64", index)),
+					}
+					return
+				}
+
+				filename := fmt.Sprintf("post_%s_img_%d_%s.jpg", post.ID, index, uuid.New().String())
+				imageURL, err := uc.StorageService.UploadImageWithContext(ctx, imageData, filename, "posts")
+				if err != nil {
+					resultChan <- imageUploadResult{
+						index: index,
+						err:   apperrors.NewInternalError(fmt.Sprintf("Erro ao fazer upload da imagem %d", index), err),
+					}
+					return
+				}
+
+				resultChan <- imageUploadResult{
+					index:    index,
+					image:    entity.NewPostImage("", post.ID, imageURL),
+					imageURL: imageURL,
+					err:      nil,
+				}
+			}(i, imageBase64)
 		}
+
+		go func() {
+			wg.Wait()
+			close(resultChan)
+		}()
+
+		results := make([]imageUploadResult, len(*input.Images))
+		for result := range resultChan {
+			results[result.index] = result
+		}
+
+		for _, result := range results {
+			if result.err != nil {
+
+				for _, url := range uploadedURLs {
+					_ = uc.StorageService.DeleteImage(url, "posts")
+				}
+				return nil, result.err
+			}
+			newImages = append(newImages, result.image)
+			uploadedURLs = append(uploadedURLs, result.imageURL)
+		}
+
+		post.Images = newImages
 	}
 
 	updatedPost, err := uc.Repository.UpdatePostByID(post)
 	if err != nil {
 
-		for _, img := range post.Images {
-			_ = uc.StorageService.DeleteImage(img.ImageURL, "posts")
+		if shouldUpdateImages {
+			for _, url := range uploadedURLs {
+				_ = uc.StorageService.DeleteImage(url, "posts")
+			}
 		}
 		return nil, err
 	}
 
-	for _, oldImg := range oldImages {
-		_ = uc.StorageService.DeleteImage(oldImg.ImageURL, "posts")
+	if shouldUpdateImages && len(oldImages) > 0 {
+		for _, oldImg := range oldImages {
+			_ = uc.StorageService.DeleteImage(oldImg.ImageURL, "posts")
+		}
 	}
 
 	var imagesOutput []*PostImageOutputDTO

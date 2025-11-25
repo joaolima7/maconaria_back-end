@@ -63,7 +63,7 @@ func (r *UpdatePostByIDRepositoryImpl) UpdatePostByID(post *entity.Post) (*entit
 		return nil, apperrors.WrapDatabaseError(err, "atualizar post")
 	}
 
-	if len(post.Images) > 0 {
+	if post.Images != nil {
 
 		if err := r.imageRepository.DeletePostImagesByPostID(post.ID); err != nil {
 			return nil, err
