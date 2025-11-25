@@ -41,7 +41,7 @@ type UpdatePostByIDOutputDTO struct {
 	IsFeatured          bool                  `json:"is_featured"`
 	PostType            types.PostType        `json:"post_type"`
 	UserID              string                `json:"user_id"`
-	Images              []*PostImageOutputDTO `json:"images,omitempty"`
+	Images              []*PostImageOutputDTO `json:"images"`
 	CreatedAt           time.Time             `json:"created_at"`
 	UpdatedAt           time.Time             `json:"updated_at"`
 }
@@ -65,7 +65,6 @@ func NewUpdatePostByIDUseCase(
 }
 
 func (uc *UpdatePostByIDUseCase) Execute(input UpdatePostByIDInputDTO) (*UpdatePostByIDOutputDTO, error) {
-
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
@@ -93,15 +92,12 @@ func (uc *UpdatePostByIDUseCase) Execute(input UpdatePostByIDInputDTO) (*UpdateP
 	var uploadedURLs []string
 
 	if input.Images == nil {
-
 		shouldUpdateImages = false
 		post.Images = oldImages
 	} else if len(*input.Images) == 0 {
-
 		shouldUpdateImages = true
 		post.Images = []*entity.PostImage{}
 	} else {
-
 		shouldUpdateImages = true
 
 		const maxWorkers = 5
@@ -157,7 +153,6 @@ func (uc *UpdatePostByIDUseCase) Execute(input UpdatePostByIDInputDTO) (*UpdateP
 
 		for _, result := range results {
 			if result.err != nil {
-
 				for _, url := range uploadedURLs {
 					_ = uc.StorageService.DeleteImage(url, "posts")
 				}
@@ -172,7 +167,6 @@ func (uc *UpdatePostByIDUseCase) Execute(input UpdatePostByIDInputDTO) (*UpdateP
 
 	updatedPost, err := uc.Repository.UpdatePostByID(post)
 	if err != nil {
-
 		if shouldUpdateImages {
 			for _, url := range uploadedURLs {
 				_ = uc.StorageService.DeleteImage(url, "posts")
@@ -187,7 +181,8 @@ func (uc *UpdatePostByIDUseCase) Execute(input UpdatePostByIDInputDTO) (*UpdateP
 		}
 	}
 
-	var imagesOutput []*PostImageOutputDTO
+	imagesOutput := make([]*PostImageOutputDTO, 0)
+
 	if len(updatedPost.Images) > 0 {
 		imagesOutput = make([]*PostImageOutputDTO, len(updatedPost.Images))
 		for i, img := range updatedPost.Images {
