@@ -12,11 +12,11 @@ type Worker struct {
 	Name              string
 	Registration      string
 	BirthDate         time.Time
-	InitiationDate    time.Time
-	ElevationDate     time.Time
-	ExaltationDate    time.Time
-	AffiliationDate   time.Time
-	InstallationDate  time.Time
+	InitiationDate    *time.Time
+	ElevationDate     *time.Time
+	ExaltationDate    *time.Time
+	AffiliationDate   *time.Time
+	InstallationDate  *time.Time
 	EmeritusMasonDate *time.Time
 	ProvectMasonDate  *time.Time
 	ImageURL          string
@@ -31,11 +31,11 @@ func NewWorker(
 	name string,
 	registration string,
 	birthDate time.Time,
-	initiationDate time.Time,
-	elevationDate time.Time,
-	exaltationDate time.Time,
-	affiliationDate time.Time,
-	installationDate time.Time,
+	initiationDate *time.Time,
+	elevationDate *time.Time,
+	exaltationDate *time.Time,
+	affiliationDate *time.Time,
+	installationDate *time.Time,
 	emeritusMasonDate *time.Time,
 	provectMasonDate *time.Time,
 	imageURL string,
@@ -124,23 +124,23 @@ func (w *Worker) ValidateDates() error {
 		return apperrors.NewValidationError("data de nascimento", "A data de nascimento não pode ser futura!")
 	}
 
-	if w.InitiationDate.Before(w.BirthDate) {
+	if w.InitiationDate != nil && w.InitiationDate.Before(w.BirthDate) {
 		return apperrors.NewValidationError("data de iniciação", "A data de iniciação não pode ser anterior à data de nascimento!")
 	}
 
-	if w.ElevationDate.Before(w.InitiationDate) {
+	if w.ElevationDate != nil && w.InitiationDate != nil && w.ElevationDate.Before(*w.InitiationDate) {
 		return apperrors.NewValidationError("data de elevação", "A data de elevação não pode ser anterior à iniciação!")
 	}
 
-	if w.ExaltationDate.Before(w.ElevationDate) {
+	if w.ExaltationDate != nil && w.ElevationDate != nil && w.ExaltationDate.Before(*w.ElevationDate) {
 		return apperrors.NewValidationError("data de exaltação", "A data de exaltação não pode ser anterior à elevação!")
 	}
 
-	if w.AffiliationDate.Before(w.BirthDate) {
+	if w.AffiliationDate != nil && w.AffiliationDate.Before(w.BirthDate) {
 		return apperrors.NewValidationError("data de afiliação", "A data de filiação não pode ser anterior à data de nascimento!")
 	}
 
-	if w.InstallationDate.Before(w.BirthDate) {
+	if w.InstallationDate != nil && w.InstallationDate.Before(w.BirthDate) {
 		return apperrors.NewValidationError("data de instalação", "A data de instalação não pode ser anterior à data de nascimento!")
 	}
 

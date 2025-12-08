@@ -40,17 +40,34 @@ func (r *CreateWorkerRepositoryImpl) CreateWorker(worker *entity.Worker) (*entit
 		provectMasonDate = sql.NullTime{Time: *worker.ProvectMasonDate, Valid: true}
 	}
 
+	var initiationDate, elevationDate, exaltationDate, affiliationDate, installationDate sql.NullTime
+	if worker.InitiationDate != nil {
+		initiationDate = sql.NullTime{Time: *worker.InitiationDate, Valid: true}
+	}
+	if worker.ElevationDate != nil {
+		elevationDate = sql.NullTime{Time: *worker.ElevationDate, Valid: true}
+	}
+	if worker.ExaltationDate != nil {
+		exaltationDate = sql.NullTime{Time: *worker.ExaltationDate, Valid: true}
+	}
+	if worker.AffiliationDate != nil {
+		affiliationDate = sql.NullTime{Time: *worker.AffiliationDate, Valid: true}
+	}
+	if worker.InstallationDate != nil {
+		installationDate = sql.NullTime{Time: *worker.InstallationDate, Valid: true}
+	}
+
 	params := db.CreateWorkerParams{
 		ID:                worker.ID,
 		Number:            worker.Number,
 		Name:              worker.Name,
 		Registration:      worker.Registration,
 		BirthDate:         worker.BirthDate,
-		InitiationDate:    worker.InitiationDate,
-		ElevationDate:     worker.ElevationDate,
-		ExaltationDate:    worker.ExaltationDate,
-		AffiliationDate:   worker.AffiliationDate,
-		InstallationDate:  worker.InstallationDate,
+		InitiationDate:    initiationDate,
+		ElevationDate:     elevationDate,
+		ExaltationDate:    exaltationDate,
+		AffiliationDate:   affiliationDate,
+		InstallationDate:  installationDate,
 		EmeritusMasonDate: emeritusMasonDate,
 		ProvectMasonDate:  provectMasonDate,
 		ImageUrl:          worker.ImageURL,
@@ -71,7 +88,24 @@ func (r *CreateWorkerRepositoryImpl) CreateWorker(worker *entity.Worker) (*entit
 }
 
 func dbWorkerToEntity(workerDB db.Worker) *entity.Worker {
+	var initiationDate, elevationDate, exaltationDate, affiliationDate, installationDate *time.Time
 	var emeritusMasonDate, provectMasonDate *time.Time
+
+	if workerDB.InitiationDate.Valid {
+		initiationDate = &workerDB.InitiationDate.Time
+	}
+	if workerDB.ElevationDate.Valid {
+		elevationDate = &workerDB.ElevationDate.Time
+	}
+	if workerDB.ExaltationDate.Valid {
+		exaltationDate = &workerDB.ExaltationDate.Time
+	}
+	if workerDB.AffiliationDate.Valid {
+		affiliationDate = &workerDB.AffiliationDate.Time
+	}
+	if workerDB.InstallationDate.Valid {
+		installationDate = &workerDB.InstallationDate.Time
+	}
 	if workerDB.EmeritusMasonDate.Valid {
 		emeritusMasonDate = &workerDB.EmeritusMasonDate.Time
 	}
@@ -85,11 +119,11 @@ func dbWorkerToEntity(workerDB db.Worker) *entity.Worker {
 		Name:              workerDB.Name,
 		Registration:      workerDB.Registration,
 		BirthDate:         workerDB.BirthDate,
-		InitiationDate:    workerDB.InitiationDate,
-		ElevationDate:     workerDB.ElevationDate,
-		ExaltationDate:    workerDB.ExaltationDate,
-		AffiliationDate:   workerDB.AffiliationDate,
-		InstallationDate:  workerDB.InstallationDate,
+		InitiationDate:    initiationDate,
+		ElevationDate:     elevationDate,
+		ExaltationDate:    exaltationDate,
+		AffiliationDate:   affiliationDate,
+		InstallationDate:  installationDate,
 		EmeritusMasonDate: emeritusMasonDate,
 		ProvectMasonDate:  provectMasonDate,
 		ImageURL:          workerDB.ImageUrl,

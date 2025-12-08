@@ -17,11 +17,11 @@ type CreateWorkerInputDTO struct {
 	Name              string  `json:"name" validate:"required,min=3"`
 	Registration      string  `json:"registration" validate:"required"`
 	BirthDate         string  `json:"birth_date" validate:"required"`
-	InitiationDate    string  `json:"initiation_date" validate:"required"`
-	ElevationDate     string  `json:"elevation_date" validate:"required"`
-	ExaltationDate    string  `json:"exaltation_date" validate:"required"`
-	AffiliationDate   string  `json:"affiliation_date" validate:"required"`
-	InstallationDate  string  `json:"installation_date" validate:"required"`
+	InitiationDate    *string `json:"initiation_date,omitempty"`
+	ElevationDate     *string `json:"elevation_date,omitempty"`
+	ExaltationDate    *string `json:"exaltation_date,omitempty"`
+	AffiliationDate   *string `json:"affiliation_date,omitempty"`
+	InstallationDate  *string `json:"installation_date,omitempty"`
 	EmeritusMasonDate *string `json:"emeritus_mason_date,omitempty"`
 	ProvectMasonDate  *string `json:"provect_mason_date,omitempty"`
 	ImageData         string  `json:"image_data" validate:"required,base64"`
@@ -34,11 +34,11 @@ type CreateWorkerOutputDTO struct {
 	Name              string     `json:"name"`
 	Registration      string     `json:"registration"`
 	BirthDate         time.Time  `json:"birth_date"`
-	InitiationDate    time.Time  `json:"initiation_date"`
-	ElevationDate     time.Time  `json:"elevation_date"`
-	ExaltationDate    time.Time  `json:"exaltation_date"`
-	AffiliationDate   time.Time  `json:"affiliation_date"`
-	InstallationDate  time.Time  `json:"installation_date"`
+	InitiationDate    *time.Time `json:"initiation_date,omitempty"`
+	ElevationDate     *time.Time `json:"elevation_date,omitempty"`
+	ExaltationDate    *time.Time `json:"exaltation_date,omitempty"`
+	AffiliationDate   *time.Time `json:"affiliation_date,omitempty"`
+	InstallationDate  *time.Time `json:"installation_date,omitempty"`
 	EmeritusMasonDate *time.Time `json:"emeritus_mason_date,omitempty"`
 	ProvectMasonDate  *time.Time `json:"provect_mason_date,omitempty"`
 	ImageURL          string     `json:"image_url"`
@@ -72,32 +72,48 @@ func (uc *CreateWorkerUseCase) Execute(input CreateWorkerInputDTO) (*CreateWorke
 		return nil, apperrors.NewValidationError("data de nascimento", "Formato da data de nascimento inválido!")
 	}
 
-	initiationDate, err := time.Parse("2006-01-02", input.InitiationDate)
-	if err != nil {
-		return nil, apperrors.NewValidationError("data de iniciação", "Formato da data de iniciação inválido!")
-	}
-
-	elevationDate, err := time.Parse("2006-01-02", input.ElevationDate)
-	if err != nil {
-		return nil, apperrors.NewValidationError("data de elevação", "Formato da data de elevação inválido!")
-	}
-
-	exaltationDate, err := time.Parse("2006-01-02", input.ExaltationDate)
-	if err != nil {
-		return nil, apperrors.NewValidationError("data de exaltação", "Formato da data de exaltação inválido!")
-	}
-
-	affiliationDate, err := time.Parse("2006-01-02", input.AffiliationDate)
-	if err != nil {
-		return nil, apperrors.NewValidationError("data de afiliação", "Formato da data de afiliação inválido!")
-	}
-
-	installationDate, err := time.Parse("2006-01-02", input.InstallationDate)
-	if err != nil {
-		return nil, apperrors.NewValidationError("data de instalação", "Formato da data de instalação inválido!")
-	}
-
+	var initiationDate, elevationDate, exaltationDate, affiliationDate, installationDate *time.Time
 	var emeritusMasonDate, provectMasonDate *time.Time
+
+	if input.InitiationDate != nil {
+		date, err := time.Parse("2006-01-02", *input.InitiationDate)
+		if err != nil {
+			return nil, apperrors.NewValidationError("data de iniciação", "Formato da data de iniciação inválido!")
+		}
+		initiationDate = &date
+	}
+
+	if input.ElevationDate != nil {
+		date, err := time.Parse("2006-01-02", *input.ElevationDate)
+		if err != nil {
+			return nil, apperrors.NewValidationError("data de elevação", "Formato da data de elevação inválido!")
+		}
+		elevationDate = &date
+	}
+
+	if input.ExaltationDate != nil {
+		date, err := time.Parse("2006-01-02", *input.ExaltationDate)
+		if err != nil {
+			return nil, apperrors.NewValidationError("data de exaltação", "Formato da data de exaltação inválido!")
+		}
+		exaltationDate = &date
+	}
+
+	if input.AffiliationDate != nil {
+		date, err := time.Parse("2006-01-02", *input.AffiliationDate)
+		if err != nil {
+			return nil, apperrors.NewValidationError("data de afiliação", "Formato da data de afiliação inválido!")
+		}
+		affiliationDate = &date
+	}
+
+	if input.InstallationDate != nil {
+		date, err := time.Parse("2006-01-02", *input.InstallationDate)
+		if err != nil {
+			return nil, apperrors.NewValidationError("data de instalação", "Formato da data de instalação inválido!")
+		}
+		installationDate = &date
+	}
 	if input.EmeritusMasonDate != nil {
 		date, err := time.Parse("2006-01-02", *input.EmeritusMasonDate)
 		if err != nil {

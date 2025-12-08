@@ -67,13 +67,9 @@ func (rt *Router) Setup() *chi.Mux {
 
 	r.Route("/api", func(r chi.Router) {
 
-		// ========== AUTH (público) ==========
 		r.Post("/auth/login", rt.AuthHandler.Login)
 
-		// ========== POSTS ==========
-		// GET público
 		r.Get("/posts", rt.PostHandler.GetAllPosts)
-		// CUD protegido
 		r.Group(func(r chi.Router) {
 			r.Use(rt.AuthMiddleware.Authenticate)
 			r.Post("/posts", rt.PostHandler.CreatePost)
@@ -81,10 +77,7 @@ func (rt *Router) Setup() *chi.Mux {
 			r.Delete("/posts/{id}", rt.PostHandler.DeletePost)
 		})
 
-		// ========== WORKERS ==========
-		// GET público
 		r.Get("/workers", rt.WorkerHandler.GetAllWorkers)
-		// GET by ID e CUD protegidos
 		r.Group(func(r chi.Router) {
 			r.Use(rt.AuthMiddleware.Authenticate)
 			r.Get("/workers/{id}", rt.WorkerHandler.GetWorkerByID)
@@ -93,10 +86,7 @@ func (rt *Router) Setup() *chi.Mux {
 			r.Delete("/workers/{id}", rt.WorkerHandler.DeleteWorker)
 		})
 
-		// ========== TIMELINES ==========
-		// GET público
 		r.Get("/timelines", rt.TimelineHandler.GetAllTimelines)
-		// GET by ID e CUD protegidos
 		r.Group(func(r chi.Router) {
 			r.Use(rt.AuthMiddleware.Authenticate)
 			r.Get("/timelines/{id}", rt.TimelineHandler.GetTimelineByID)
@@ -106,9 +96,7 @@ func (rt *Router) Setup() *chi.Mux {
 		})
 
 		// ========== ACACIAS ==========
-		// GET público
 		r.Get("/acacias", rt.AcaciaHandler.GetAllAcacias)
-		// GET by ID e CUD protegidos
 		r.Group(func(r chi.Router) {
 			r.Use(rt.AuthMiddleware.Authenticate)
 			r.Get("/acacias/{id}", rt.AcaciaHandler.GetAcaciaByID)
@@ -117,10 +105,7 @@ func (rt *Router) Setup() *chi.Mux {
 			r.Delete("/acacias/{id}", rt.AcaciaHandler.DeleteAcacia)
 		})
 
-		// ========== LIBRARIES ==========
-		// GET público
 		r.Get("/libraries", rt.LibraryHandler.GetAllLibraries)
-		// GET by ID, degree e CUD protegidos
 		r.Group(func(r chi.Router) {
 			r.Use(rt.AuthMiddleware.Authenticate)
 			r.Get("/libraries/{id}", rt.LibraryHandler.GetLibraryByID)
@@ -130,7 +115,6 @@ func (rt *Router) Setup() *chi.Mux {
 			r.Delete("/libraries/{id}", rt.LibraryHandler.DeleteLibrary)
 		})
 
-		// ========== USERS (todas protegidas) ==========
 		r.Group(func(r chi.Router) {
 			r.Use(rt.AuthMiddleware.Authenticate)
 			r.Route("/users", func(r chi.Router) {

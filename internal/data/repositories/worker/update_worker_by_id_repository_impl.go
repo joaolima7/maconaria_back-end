@@ -37,16 +37,33 @@ func (r *UpdateWorkerByIDRepositoryImpl) UpdateWorkerByID(worker *entity.Worker)
 		provectMasonDate = sql.NullTime{Time: *worker.ProvectMasonDate, Valid: true}
 	}
 
+	var initiationDate, elevationDate, exaltationDate, affiliationDate, installationDate sql.NullTime
+	if worker.InitiationDate != nil {
+		initiationDate = sql.NullTime{Time: *worker.InitiationDate, Valid: true}
+	}
+	if worker.ElevationDate != nil {
+		elevationDate = sql.NullTime{Time: *worker.ElevationDate, Valid: true}
+	}
+	if worker.ExaltationDate != nil {
+		exaltationDate = sql.NullTime{Time: *worker.ExaltationDate, Valid: true}
+	}
+	if worker.AffiliationDate != nil {
+		affiliationDate = sql.NullTime{Time: *worker.AffiliationDate, Valid: true}
+	}
+	if worker.InstallationDate != nil {
+		installationDate = sql.NullTime{Time: *worker.InstallationDate, Valid: true}
+	}
+
 	params := db.UpdateWorkerParams{
 		Number:            worker.Number,
 		Name:              worker.Name,
 		Registration:      worker.Registration,
 		BirthDate:         worker.BirthDate,
-		InitiationDate:    worker.InitiationDate,
-		ElevationDate:     worker.ElevationDate,
-		ExaltationDate:    worker.ExaltationDate,
-		AffiliationDate:   worker.AffiliationDate,
-		InstallationDate:  worker.InstallationDate,
+		InitiationDate:    initiationDate,
+		ElevationDate:     elevationDate,
+		ExaltationDate:    exaltationDate,
+		AffiliationDate:   affiliationDate,
+		InstallationDate:  installationDate,
 		EmeritusMasonDate: emeritusMasonDate,
 		ProvectMasonDate:  provectMasonDate,
 		ImageUrl:          worker.ImageURL,

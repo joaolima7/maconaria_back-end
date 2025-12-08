@@ -25,11 +25,11 @@ type CreateWorkerParams struct {
 	Name              string
 	Registration      string
 	BirthDate         time.Time
-	InitiationDate    time.Time
-	ElevationDate     time.Time
-	ExaltationDate    time.Time
-	AffiliationDate   time.Time
-	InstallationDate  time.Time
+	InitiationDate    sql.NullTime
+	ElevationDate     sql.NullTime
+	ExaltationDate    sql.NullTime
+	AffiliationDate   sql.NullTime
+	InstallationDate  sql.NullTime
 	EmeritusMasonDate sql.NullTime
 	ProvectMasonDate  sql.NullTime
 	ImageUrl          string
@@ -232,11 +232,11 @@ type UpdateWorkerParams struct {
 	Name              string
 	Registration      string
 	BirthDate         time.Time
-	InitiationDate    time.Time
-	ElevationDate     time.Time
-	ExaltationDate    time.Time
-	AffiliationDate   time.Time
-	InstallationDate  time.Time
+	InitiationDate    sql.NullTime
+	ElevationDate     sql.NullTime
+	ExaltationDate    sql.NullTime
+	AffiliationDate   sql.NullTime
+	InstallationDate  sql.NullTime
 	EmeritusMasonDate sql.NullTime
 	ProvectMasonDate  sql.NullTime
 	ImageUrl          string

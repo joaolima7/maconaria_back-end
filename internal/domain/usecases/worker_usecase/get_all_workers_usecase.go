@@ -12,11 +12,11 @@ type GetAllWorkersOutputDTO struct {
 	Name              string     `json:"name"`
 	Registration      string     `json:"registration"`
 	BirthDate         time.Time  `json:"birth_date"`
-	InitiationDate    time.Time  `json:"initiation_date"`
-	ElevationDate     time.Time  `json:"elevation_date"`
-	ExaltationDate    time.Time  `json:"exaltation_date"`
-	AffiliationDate   time.Time  `json:"affiliation_date"`
-	InstallationDate  time.Time  `json:"installation_date"`
+	InitiationDate    *time.Time `json:"initiation_date,omitempty"`
+	ElevationDate     *time.Time `json:"elevation_date,omitempty"`
+	ExaltationDate    *time.Time `json:"exaltation_date,omitempty"`
+	AffiliationDate   *time.Time `json:"affiliation_date,omitempty"`
+	InstallationDate  *time.Time `json:"installation_date,omitempty"`
 	EmeritusMasonDate *time.Time `json:"emeritus_mason_date,omitempty"`
 	ProvectMasonDate  *time.Time `json:"provect_mason_date,omitempty"`
 	ImageURL          string     `json:"image_url"`
