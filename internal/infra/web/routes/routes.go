@@ -16,6 +16,7 @@ type Router struct {
 	TimelineHandler *handlers.TimelineHandler
 	AcaciaHandler   *handlers.AcaciaHandler
 	LibraryHandler  *handlers.LibraryHandler
+	WordKeyHandler  *handlers.WordKeyHandler
 	HealthHandler   *handlers.HealthHandler
 	AuthMiddleware  *middlewares.AuthMiddleware
 }
@@ -28,6 +29,7 @@ func NewRouter(
 	timelineHandler *handlers.TimelineHandler,
 	acaciaHandler *handlers.AcaciaHandler,
 	libraryHandler *handlers.LibraryHandler,
+	wordkeyHandler *handlers.WordKeyHandler,
 	healthHandler *handlers.HealthHandler,
 	authMiddleware *middlewares.AuthMiddleware,
 ) *Router {
@@ -39,6 +41,7 @@ func NewRouter(
 		TimelineHandler: timelineHandler,
 		AcaciaHandler:   acaciaHandler,
 		LibraryHandler:  libraryHandler,
+		WordKeyHandler:  wordkeyHandler,
 		HealthHandler:   healthHandler,
 		AuthMiddleware:  authMiddleware,
 	}
@@ -113,6 +116,17 @@ func (rt *Router) Setup() *chi.Mux {
 			r.Post("/libraries", rt.LibraryHandler.CreateLibrary)
 			r.Put("/libraries/{id}", rt.LibraryHandler.UpdateLibrary)
 			r.Delete("/libraries/{id}", rt.LibraryHandler.DeleteLibrary)
+		})
+
+		// ========== WORDKEYS ==========
+		r.Get("/wordkeys", rt.WordKeyHandler.GetAllWordKeys)
+		r.Get("/wordkeys/active", rt.WordKeyHandler.GetWordKeyByActive)
+		r.Group(func(r chi.Router) {
+			r.Use(rt.AuthMiddleware.Authenticate)
+			r.Get("/wordkeys/{id}", rt.WordKeyHandler.GetWordKeyByID)
+			r.Post("/wordkeys", rt.WordKeyHandler.CreateWordKey)
+			r.Put("/wordkeys/{id}", rt.WordKeyHandler.UpdateWordKey)
+			r.Delete("/wordkeys/{id}", rt.WordKeyHandler.DeleteWordKey)
 		})
 
 		r.Group(func(r chi.Router) {

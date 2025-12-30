@@ -16,18 +16,21 @@ import (
 	"github.com/joaolima7/maconaria_back-end/internal/data/repositories/post"
 	"github.com/joaolima7/maconaria_back-end/internal/data/repositories/timeline"
 	"github.com/joaolima7/maconaria_back-end/internal/data/repositories/user"
+	"github.com/joaolima7/maconaria_back-end/internal/data/repositories/wordkey"
 	"github.com/joaolima7/maconaria_back-end/internal/data/repositories/worker"
 	acacia2 "github.com/joaolima7/maconaria_back-end/internal/domain/repositories/acacia"
 	library2 "github.com/joaolima7/maconaria_back-end/internal/domain/repositories/library"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/repositories/post"
 	timeline2 "github.com/joaolima7/maconaria_back-end/internal/domain/repositories/timeline"
 	user2 "github.com/joaolima7/maconaria_back-end/internal/domain/repositories/user"
+	wordkey2 "github.com/joaolima7/maconaria_back-end/internal/domain/repositories/wordkey"
 	worker2 "github.com/joaolima7/maconaria_back-end/internal/domain/repositories/worker"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/usecases/acacia_usecase"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/usecases/library_usecase"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/usecases/post_usecase"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/usecases/timeline_usecase"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/usecases/user_usecase"
+	"github.com/joaolima7/maconaria_back-end/internal/domain/usecases/wordkey_usecase"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/usecases/worker_usecase"
 	"github.com/joaolima7/maconaria_back-end/internal/infra/database"
 	"github.com/joaolima7/maconaria_back-end/internal/infra/storage"
@@ -118,9 +121,23 @@ func InitializeApp(cfg *config.Config) (*App, error) {
 	deleteLibraryRepositoryImpl := library.NewDeleteLibraryRepositoryImpl(queries)
 	deleteLibraryUseCase := library_usecase.NewDeleteLibraryUseCase(deleteLibraryRepositoryImpl, getLibraryByIDRepositoryImpl, storageService)
 	libraryHandler := handlers.NewLibraryHandler(createLibraryUseCase, getAllLibrariesUseCase, getLibraryByIDUseCase, getLibrariesByDegreeUseCase, updateLibraryByIDUseCase, deleteLibraryUseCase)
+	createWordKeyRepositoryImpl := wordkey.NewCreateWordKeyRepositoryImpl(db)
+	deactivateAllWordKeysRepositoryImpl := wordkey.NewDeactivateAllWordKeysRepositoryImpl(db)
+	createWordKeyUseCase := wordkey_usecase.NewCreateWordKeyUseCase(createWordKeyRepositoryImpl, deactivateAllWordKeysRepositoryImpl)
+	getAllWordKeysRepositoryImpl := wordkey.NewGetAllWordKeysRepositoryImpl(db)
+	getAllWordKeysUseCase := wordkey_usecase.NewGetAllWordKeysUseCase(getAllWordKeysRepositoryImpl)
+	getWordKeyByIDRepositoryImpl := wordkey.NewGetWordKeyByIDRepositoryImpl(db)
+	getWordKeyByIDUseCase := wordkey_usecase.NewGetWordKeyByIDUseCase(getWordKeyByIDRepositoryImpl)
+	getWordKeyByActiveRepositoryImpl := wordkey.NewGetWordKeyByActiveRepositoryImpl(db)
+	getWordKeyByActiveUseCase := wordkey_usecase.NewGetWordKeyByActiveUseCase(getWordKeyByActiveRepositoryImpl)
+	updateWordKeyByIDRepositoryImpl := wordkey.NewUpdateWordKeyByIDRepositoryImpl(db)
+	updateWordKeyByIDUseCase := wordkey_usecase.NewUpdateWordKeyByIDUseCase(getWordKeyByIDRepositoryImpl, updateWordKeyByIDRepositoryImpl, deactivateAllWordKeysRepositoryImpl)
+	deleteWordKeyRepositoryImpl := wordkey.NewDeleteWordKeyRepositoryImpl(db)
+	deleteWordKeyUseCase := wordkey_usecase.NewDeleteWordKeyUseCase(getWordKeyByIDRepositoryImpl, deleteWordKeyRepositoryImpl)
+	wordKeyHandler := handlers.NewWordKeyHandler(createWordKeyUseCase, getAllWordKeysUseCase, getWordKeyByIDUseCase, getWordKeyByActiveUseCase, updateWordKeyByIDUseCase, deleteWordKeyUseCase)
 	healthHandler := handlers.NewHealthHandler(db)
 	authMiddleware := middlewares.NewAuthMiddleware(jwtService)
-	router := routes.NewRouter(userHandler, authHandler, postHandler, workerHandler, timelineHandler, acaciaHandler, libraryHandler, healthHandler, authMiddleware)
+	router := routes.NewRouter(userHandler, authHandler, postHandler, workerHandler, timelineHandler, acaciaHandler, libraryHandler, wordKeyHandler, healthHandler, authMiddleware)
 	mux := provideChiRouter(router)
 	server := provideServer(mux, cfg)
 	app := &App{
@@ -149,6 +166,9 @@ var AcaciaRepositorySet = wire.NewSet(acacia.NewCreateAcaciaRepositoryImpl, wire
 
 var LibraryRepositorySet = wire.NewSet(library.NewCreateLibraryRepositoryImpl, wire.Bind(new(library2.CreateLibraryRepository), new(*library.CreateLibraryRepositoryImpl)), library.NewGetAllLibrariesRepositoryImpl, wire.Bind(new(library2.GetAllLibrariesRepository), new(*library.GetAllLibrariesRepositoryImpl)), library.NewGetLibraryByIDRepositoryImpl, wire.Bind(new(library2.GetLibraryByIDRepository), new(*library.GetLibraryByIDRepositoryImpl)), library.NewGetLibrariesByDegreeRepositoryImpl, wire.Bind(new(library2.GetLibrariesByDegreeRepository), new(*library.GetLibrariesByDegreeRepositoryImpl)), library.NewUpdateLibraryByIDRepositoryImpl, wire.Bind(new(library2.UpdateLibraryByIDRepository), new(*library.UpdateLibraryByIDRepositoryImpl)), library.NewDeleteLibraryRepositoryImpl, wire.Bind(new(library2.DeleteLibraryRepository), new(*library.DeleteLibraryRepositoryImpl)))
 
+// WordKey Repository Set
+var WordKeyRepositorySet = wire.NewSet(wordkey.NewCreateWordKeyRepositoryImpl, wire.Bind(new(wordkey2.CreateWordKeyRepository), new(*wordkey.CreateWordKeyRepositoryImpl)), wordkey.NewGetAllWordKeysRepositoryImpl, wire.Bind(new(wordkey2.GetAllWordKeysRepository), new(*wordkey.GetAllWordKeysRepositoryImpl)), wordkey.NewGetWordKeyByIDRepositoryImpl, wire.Bind(new(wordkey2.GetWordKeyByIDRepository), new(*wordkey.GetWordKeyByIDRepositoryImpl)), wordkey.NewGetWordKeyByActiveRepositoryImpl, wire.Bind(new(wordkey2.GetWordKeyByActiveRepository), new(*wordkey.GetWordKeyByActiveRepositoryImpl)), wordkey.NewUpdateWordKeyByIDRepositoryImpl, wire.Bind(new(wordkey2.UpdateWordKeyByIDRepository), new(*wordkey.UpdateWordKeyByIDRepositoryImpl)), wordkey.NewDeleteWordKeyRepositoryImpl, wire.Bind(new(wordkey2.DeleteWordKeyRepository), new(*wordkey.DeleteWordKeyRepositoryImpl)), wordkey.NewDeactivateAllWordKeysRepositoryImpl, wire.Bind(new(wordkey2.DeactivateAllWordKeysRepository), new(*wordkey.DeactivateAllWordKeysRepositoryImpl)))
+
 // User UseCase Set
 var UserUseCaseSet = wire.NewSet(user_usecase.NewCreateUserUseCase, user_usecase.NewGetAllUsersUseCase, user_usecase.NewGetUserByIdUseCase, user_usecase.NewUpdateUserByIdUseCase, user_usecase.NewUpdateUserPasswordUseCase, user_usecase.NewLoginUseCase)
 
@@ -166,13 +186,16 @@ var AcaciaUseCaseSet = wire.NewSet(acacia_usecase.NewCreateAcaciaUseCase, acacia
 
 var LibraryUseCaseSet = wire.NewSet(library_usecase.NewCreateLibraryUseCase, library_usecase.NewGetAllLibrariesUseCase, library_usecase.NewGetLibraryByIDUseCase, library_usecase.NewGetLibrariesByDegreeUseCase, library_usecase.NewUpdateLibraryByIDUseCase, library_usecase.NewDeleteLibraryUseCase)
 
+// WordKey UseCase Set
+var WordKeyUseCaseSet = wire.NewSet(wordkey_usecase.NewCreateWordKeyUseCase, wordkey_usecase.NewGetAllWordKeysUseCase, wordkey_usecase.NewGetWordKeyByIDUseCase, wordkey_usecase.NewGetWordKeyByActiveUseCase, wordkey_usecase.NewUpdateWordKeyByIDUseCase, wordkey_usecase.NewDeleteWordKeyUseCase)
+
 // Infra Set
 var InfraSet = wire.NewSet(database.ProvideDatabase, database.ProvideQueries, provideJWTService,
 	provideStorageService,
 )
 
 // Web Set
-var WebSet = wire.NewSet(handlers.NewUserHandler, handlers.NewAuthHandler, handlers.NewPostHandler, handlers.NewWorkerHandler, handlers.NewTimelineHandler, handlers.NewAcaciaHandler, handlers.NewLibraryHandler, handlers.NewHealthHandler, middlewares.NewAuthMiddleware, routes.NewRouter, provideChiRouter,
+var WebSet = wire.NewSet(handlers.NewUserHandler, handlers.NewAuthHandler, handlers.NewPostHandler, handlers.NewWorkerHandler, handlers.NewTimelineHandler, handlers.NewAcaciaHandler, handlers.NewLibraryHandler, handlers.NewWordKeyHandler, handlers.NewHealthHandler, middlewares.NewAuthMiddleware, routes.NewRouter, provideChiRouter,
 	provideServer,
 )
 

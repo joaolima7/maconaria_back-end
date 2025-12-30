@@ -14,18 +14,21 @@ import (
 	postdata "github.com/joaolima7/maconaria_back-end/internal/data/repositories/post"
 	timelinedata "github.com/joaolima7/maconaria_back-end/internal/data/repositories/timeline"
 	userdata "github.com/joaolima7/maconaria_back-end/internal/data/repositories/user"
+	wordkeydata "github.com/joaolima7/maconaria_back-end/internal/data/repositories/wordkey"
 	workerdata "github.com/joaolima7/maconaria_back-end/internal/data/repositories/worker"
 	acaciadomain "github.com/joaolima7/maconaria_back-end/internal/domain/repositories/acacia"
 	librarydomain "github.com/joaolima7/maconaria_back-end/internal/domain/repositories/library"
 	postdomain "github.com/joaolima7/maconaria_back-end/internal/domain/repositories/post"
 	timelinedomain "github.com/joaolima7/maconaria_back-end/internal/domain/repositories/timeline"
 	userdomain "github.com/joaolima7/maconaria_back-end/internal/domain/repositories/user"
+	wordkeydomain "github.com/joaolima7/maconaria_back-end/internal/domain/repositories/wordkey"
 	workerdomain "github.com/joaolima7/maconaria_back-end/internal/domain/repositories/worker"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/usecases/acacia_usecase"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/usecases/library_usecase"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/usecases/post_usecase"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/usecases/timeline_usecase"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/usecases/user_usecase"
+	"github.com/joaolima7/maconaria_back-end/internal/domain/usecases/wordkey_usecase"
 	"github.com/joaolima7/maconaria_back-end/internal/domain/usecases/worker_usecase"
 	"github.com/joaolima7/maconaria_back-end/internal/infra/database"
 	"github.com/joaolima7/maconaria_back-end/internal/infra/storage"
@@ -152,6 +155,30 @@ var LibraryRepositorySet = wire.NewSet(
 	wire.Bind(new(librarydomain.DeleteLibraryRepository), new(*librarydata.DeleteLibraryRepositoryImpl)),
 )
 
+// WordKey Repository Set
+var WordKeyRepositorySet = wire.NewSet(
+	wordkeydata.NewCreateWordKeyRepositoryImpl,
+	wire.Bind(new(wordkeydomain.CreateWordKeyRepository), new(*wordkeydata.CreateWordKeyRepositoryImpl)),
+
+	wordkeydata.NewGetAllWordKeysRepositoryImpl,
+	wire.Bind(new(wordkeydomain.GetAllWordKeysRepository), new(*wordkeydata.GetAllWordKeysRepositoryImpl)),
+
+	wordkeydata.NewGetWordKeyByIDRepositoryImpl,
+	wire.Bind(new(wordkeydomain.GetWordKeyByIDRepository), new(*wordkeydata.GetWordKeyByIDRepositoryImpl)),
+
+	wordkeydata.NewGetWordKeyByActiveRepositoryImpl,
+	wire.Bind(new(wordkeydomain.GetWordKeyByActiveRepository), new(*wordkeydata.GetWordKeyByActiveRepositoryImpl)),
+
+	wordkeydata.NewUpdateWordKeyByIDRepositoryImpl,
+	wire.Bind(new(wordkeydomain.UpdateWordKeyByIDRepository), new(*wordkeydata.UpdateWordKeyByIDRepositoryImpl)),
+
+	wordkeydata.NewDeleteWordKeyRepositoryImpl,
+	wire.Bind(new(wordkeydomain.DeleteWordKeyRepository), new(*wordkeydata.DeleteWordKeyRepositoryImpl)),
+
+	wordkeydata.NewDeactivateAllWordKeysRepositoryImpl,
+	wire.Bind(new(wordkeydomain.DeactivateAllWordKeysRepository), new(*wordkeydata.DeactivateAllWordKeysRepositoryImpl)),
+)
+
 // User UseCase Set
 var UserUseCaseSet = wire.NewSet(
 	user_usecase.NewCreateUserUseCase,
@@ -206,6 +233,16 @@ var LibraryUseCaseSet = wire.NewSet(
 	library_usecase.NewDeleteLibraryUseCase,
 )
 
+// WordKey UseCase Set
+var WordKeyUseCaseSet = wire.NewSet(
+	wordkey_usecase.NewCreateWordKeyUseCase,
+	wordkey_usecase.NewGetAllWordKeysUseCase,
+	wordkey_usecase.NewGetWordKeyByIDUseCase,
+	wordkey_usecase.NewGetWordKeyByActiveUseCase,
+	wordkey_usecase.NewUpdateWordKeyByIDUseCase,
+	wordkey_usecase.NewDeleteWordKeyUseCase,
+)
+
 // Infra Set
 var InfraSet = wire.NewSet(
 	database.ProvideDatabase,
@@ -223,6 +260,7 @@ var WebSet = wire.NewSet(
 	handlers.NewTimelineHandler,
 	handlers.NewAcaciaHandler,
 	handlers.NewLibraryHandler,
+	handlers.NewWordKeyHandler,
 	handlers.NewHealthHandler,
 	middlewares.NewAuthMiddleware,
 	routes.NewRouter,
@@ -266,12 +304,14 @@ func InitializeApp(cfg *config.Config) (*App, error) {
 		TimelineRepositorySet,
 		AcaciaRepositorySet,
 		LibraryRepositorySet,
+		WordKeyRepositorySet,
 		UserUseCaseSet,
 		PostUseCaseSet,
 		WorkerUseCaseSet,
 		TimelineUseCaseSet,
 		AcaciaUseCaseSet,
 		LibraryUseCaseSet,
+		WordKeyUseCaseSet,
 		WebSet,
 		wire.Struct(new(App), "Server", "DB"),
 	)

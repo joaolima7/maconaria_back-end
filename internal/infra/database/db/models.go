@@ -210,12 +210,23 @@ type User struct {
 	Degree    UsersDegree
 }
 
+type Wordkey struct {
+	ID        string
+	Wordkey   string
+	Active    bool
+	CreatedAt sql.NullTime
+}
+
 type Worker struct {
 	ID                string
 	Number            int32
 	Name              string
 	Registration      string
 	BirthDate         time.Time
+	ImageUrl          string
+	Deceased          bool
+	CreatedAt         sql.NullTime
+	UpdatedAt         sql.NullTime
 	InitiationDate    sql.NullTime
 	ElevationDate     sql.NullTime
 	ExaltationDate    sql.NullTime
@@ -223,8 +234,4 @@ type Worker struct {
 	InstallationDate  sql.NullTime
 	EmeritusMasonDate sql.NullTime
 	ProvectMasonDate  sql.NullTime
-	ImageUrl          string
-	Deceased          bool
-	CreatedAt         sql.NullTime
-	UpdatedAt         sql.NullTime
 }
