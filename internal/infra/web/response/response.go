@@ -3,6 +3,7 @@ package response
 import (
 	"encoding/json"
 	"errors"
+	"log"
 	"net/http"
 
 	"github.com/joaolima7/maconaria_back-end/internal/domain/apperrors"
@@ -50,6 +51,8 @@ func Error(w http.ResponseWriter, err error) {
 			Detail: appErr.Detail,
 		},
 	})
+
+	log.Printf("Erro tratado: %v", appErr)
 }
 
 func Created(w http.ResponseWriter, message string, data interface{}) {
