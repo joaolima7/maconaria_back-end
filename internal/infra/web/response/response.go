@@ -52,7 +52,7 @@ func Error(w http.ResponseWriter, err error) {
 		},
 	})
 
-	log.Printf("Erro tratado: %v", appErr)
+	log.Printf("Erro tratado: %v", appErr.Err)
 }
 
 func Created(w http.ResponseWriter, message string, data interface{}) {
