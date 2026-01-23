@@ -26,7 +26,7 @@ func (r *GetAllWorkersRepositoryImpl) GetAllWorkers() ([]*entity.Worker, error) 
 
 	workers := make([]*entity.Worker, len(workersDB))
 	for i, workerDB := range workersDB {
-		workers[i] = dbWorkerToEntity(workerDB)
+		workers[i] = dbWorkerAllRowToEntity(workerDB)
 	}
 
 	return workers, nil

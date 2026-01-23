@@ -29,5 +29,5 @@ func (r *GetWorkerByIDRepositoryImpl) GetWorkerByID(id string) (*entity.Worker, 
 		return nil, apperrors.WrapDatabaseError(err, "buscar obreiro!")
 	}
 
-	return dbWorkerToEntity(workerDB), nil
+	return dbWorkerRowToEntity(workerDB), nil
 }

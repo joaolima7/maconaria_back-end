@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/joaolima7/maconaria_back-end/internal/domain/apperrors"
@@ -21,6 +22,8 @@ type Worker struct {
 	ProvectMasonDate  *time.Time
 	ImageURL          string
 	Deceased          bool
+	IsPresident       bool
+	Terms             []string
 	CreatedAt         time.Time
 	UpdatedAt         time.Time
 }
@@ -40,6 +43,8 @@ func NewWorker(
 	provectMasonDate *time.Time,
 	imageURL string,
 	deceased bool,
+	isPresident bool,
+	terms []string,
 ) (*Worker, error) {
 	worker := &Worker{
 		ID:                id,
@@ -56,6 +61,8 @@ func NewWorker(
 		ProvectMasonDate:  provectMasonDate,
 		ImageURL:          imageURL,
 		Deceased:          deceased,
+		IsPresident:       isPresident,
+		Terms:             terms,
 		CreatedAt:         time.Now(),
 		UpdatedAt:         time.Now(),
 	}
@@ -81,6 +88,9 @@ func (w *Worker) Validate() error {
 		return err
 	}
 	if err := w.ValidateDates(); err != nil {
+		return err
+	}
+	if err := w.ValidateTerms(); err != nil {
 		return err
 	}
 	return nil
@@ -160,4 +170,22 @@ func (w *Worker) MarkAsDeceased() {
 func (w *Worker) MarkAsActive() {
 	w.Deceased = false
 	w.UpdatedAt = time.Now()
+}
+
+func (w *Worker) ValidateTerms() error {
+	if w.IsPresident && len(w.Terms) == 0 {
+		return apperrors.NewValidationError("mandatos", "Os períodos são obrigatórios para presidentes!")
+	}
+	return nil
+}
+
+func (w *Worker) TermsToJSON() (string, error) {
+	if len(w.Terms) == 0 {
+		return "[]", nil
+	}
+	bytes, err := json.Marshal(w.Terms)
+	if err != nil {
+		return "", err
+	}
+	return string(bytes), nil
 }

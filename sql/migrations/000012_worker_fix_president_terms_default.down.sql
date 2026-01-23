@@ -1,0 +1,3 @@
+ALTER TABLE workers
+    MODIFY COLUMN is_president BOOLEAN NULL,
+    MODIFY COLUMN terms JSON NULL;

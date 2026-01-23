@@ -21,6 +21,8 @@ type GetAllWorkersOutputDTO struct {
 	ProvectMasonDate  *time.Time `json:"provect_mason_date,omitempty"`
 	ImageURL          string     `json:"image_url"`
 	Deceased          bool       `json:"deceased"`
+	IsPresident       bool       `json:"is_president"`
+	Terms             []string   `json:"terms"`
 	CreatedAt         time.Time  `json:"created_at"`
 	UpdatedAt         time.Time  `json:"updated_at"`
 }
@@ -58,6 +60,8 @@ func (uc *GetAllWorkersUseCase) Execute() ([]*GetAllWorkersOutputDTO, error) {
 			ProvectMasonDate:  w.ProvectMasonDate,
 			ImageURL:          w.ImageURL,
 			Deceased:          w.Deceased,
+			IsPresident:       w.IsPresident,
+			Terms:             w.Terms,
 			CreatedAt:         w.CreatedAt,
 			UpdatedAt:         w.UpdatedAt,
 		}

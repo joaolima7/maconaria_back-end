@@ -54,6 +54,11 @@ func (r *UpdateWorkerByIDRepositoryImpl) UpdateWorkerByID(worker *entity.Worker)
 		installationDate = sql.NullTime{Time: *worker.InstallationDate, Valid: true}
 	}
 
+	termsJSON, err := worker.TermsToJSON()
+	if err != nil {
+		return nil, apperrors.NewValidationError("mandatos", "Erro ao processar mandatos!")
+	}
+
 	params := db.UpdateWorkerParams{
 		Number:            worker.Number,
 		Name:              worker.Name,
@@ -68,6 +73,8 @@ func (r *UpdateWorkerByIDRepositoryImpl) UpdateWorkerByID(worker *entity.Worker)
 		ProvectMasonDate:  provectMasonDate,
 		ImageUrl:          worker.ImageURL,
 		Deceased:          worker.Deceased,
+		IsPresident:       worker.IsPresident,
+		Terms:             []byte(termsJSON),
 		ID:                worker.ID,
 	}
 
@@ -81,5 +88,5 @@ func (r *UpdateWorkerByIDRepositoryImpl) UpdateWorkerByID(worker *entity.Worker)
 		return nil, apperrors.WrapDatabaseError(err, "buscar obreiro atualizado!")
 	}
 
-	return dbWorkerToEntity(workerDB), nil
+	return dbWorkerRowToEntity(workerDB), nil
 }

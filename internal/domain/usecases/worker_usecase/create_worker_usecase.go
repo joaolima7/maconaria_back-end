@@ -13,19 +13,21 @@ import (
 )
 
 type CreateWorkerInputDTO struct {
-	Number            int32   `json:"number" validate:"required,gt=0"`
-	Name              string  `json:"name" validate:"required,min=3"`
-	Registration      string  `json:"registration" validate:"required"`
-	BirthDate         string  `json:"birth_date" validate:"required"`
-	InitiationDate    *string `json:"initiation_date,omitempty"`
-	ElevationDate     *string `json:"elevation_date,omitempty"`
-	ExaltationDate    *string `json:"exaltation_date,omitempty"`
-	AffiliationDate   *string `json:"affiliation_date,omitempty"`
-	InstallationDate  *string `json:"installation_date,omitempty"`
-	EmeritusMasonDate *string `json:"emeritus_mason_date,omitempty"`
-	ProvectMasonDate  *string `json:"provect_mason_date,omitempty"`
-	ImageData         string  `json:"image_data" validate:"required,base64"`
-	Deceased          bool    `json:"deceased"`
+	Number            int32    `json:"number" validate:"required,gt=0"`
+	Name              string   `json:"name" validate:"required,min=3"`
+	Registration      string   `json:"registration" validate:"required"`
+	BirthDate         string   `json:"birth_date" validate:"required"`
+	InitiationDate    *string  `json:"initiation_date,omitempty"`
+	ElevationDate     *string  `json:"elevation_date,omitempty"`
+	ExaltationDate    *string  `json:"exaltation_date,omitempty"`
+	AffiliationDate   *string  `json:"affiliation_date,omitempty"`
+	InstallationDate  *string  `json:"installation_date,omitempty"`
+	EmeritusMasonDate *string  `json:"emeritus_mason_date,omitempty"`
+	ProvectMasonDate  *string  `json:"provect_mason_date,omitempty"`
+	ImageData         string   `json:"image_data" validate:"required,base64"`
+	Deceased          bool     `json:"deceased"`
+	IsPresident       bool     `json:"is_president"`
+	Terms             []string `json:"terms"`
 }
 
 type CreateWorkerOutputDTO struct {
@@ -43,6 +45,8 @@ type CreateWorkerOutputDTO struct {
 	ProvectMasonDate  *time.Time `json:"provect_mason_date,omitempty"`
 	ImageURL          string     `json:"image_url"`
 	Deceased          bool       `json:"deceased"`
+	IsPresident       bool       `json:"is_president"`
+	Terms             []string   `json:"terms,omitempty"`
 	CreatedAt         time.Time  `json:"created_at"`
 	UpdatedAt         time.Time  `json:"updated_at"`
 }
@@ -65,6 +69,10 @@ func NewCreateWorkerUseCase(
 func (uc *CreateWorkerUseCase) Execute(input CreateWorkerInputDTO) (*CreateWorkerOutputDTO, error) {
 	if input.ImageData == "" {
 		return nil, apperrors.NewValidationError("imagem", "A imagem é obrigatória!")
+	}
+
+	if input.IsPresident && len(input.Terms) == 0 {
+		return nil, apperrors.NewValidationError("mandatos", "Os períodos são obrigatórios para presidentes!")
 	}
 
 	birthDate, err := time.Parse("2006-01-02", input.BirthDate)
@@ -157,6 +165,8 @@ func (uc *CreateWorkerUseCase) Execute(input CreateWorkerInputDTO) (*CreateWorke
 		provectMasonDate,
 		imageURL,
 		input.Deceased,
+		input.IsPresident,
+		input.Terms,
 	)
 	if err != nil {
 
@@ -186,6 +196,8 @@ func (uc *CreateWorkerUseCase) Execute(input CreateWorkerInputDTO) (*CreateWorke
 		ProvectMasonDate:  workerCreated.ProvectMasonDate,
 		ImageURL:          workerCreated.ImageURL,
 		Deceased:          workerCreated.Deceased,
+		IsPresident:       workerCreated.IsPresident,
+		Terms:             workerCreated.Terms,
 		CreatedAt:         workerCreated.CreatedAt,
 		UpdatedAt:         workerCreated.UpdatedAt,
 	}, nil

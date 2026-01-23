@@ -234,4 +234,6 @@ type Worker struct {
 	InstallationDate  sql.NullTime
 	EmeritusMasonDate sql.NullTime
 	ProvectMasonDate  sql.NullTime
+	IsPresident       bool
+	Terms             json.RawMessage
 }

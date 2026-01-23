@@ -8,6 +8,7 @@ package db
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"time"
 )
 
@@ -15,8 +16,8 @@ const createWorker = `-- name: CreateWorker :execresult
 INSERT INTO workers (
   id, number, name, registration, birth_date,
   initiation_date, elevation_date, exaltation_date, affiliation_date, installation_date,
-  emeritus_mason_date, provect_mason_date, image_url, deceased
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  emeritus_mason_date, provect_mason_date, image_url, deceased, is_president, terms
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `
 
 type CreateWorkerParams struct {
@@ -34,6 +35,8 @@ type CreateWorkerParams struct {
 	ProvectMasonDate  sql.NullTime
 	ImageUrl          string
 	Deceased          bool
+	IsPresident       bool
+	Terms             json.RawMessage
 }
 
 func (q *Queries) CreateWorker(ctx context.Context, arg CreateWorkerParams) (sql.Result, error) {
@@ -52,6 +55,8 @@ func (q *Queries) CreateWorker(ctx context.Context, arg CreateWorkerParams) (sql
 		arg.ProvectMasonDate,
 		arg.ImageUrl,
 		arg.Deceased,
+		arg.IsPresident,
+		arg.Terms,
 	)
 }
 
@@ -69,20 +74,41 @@ SELECT
   id, number, name, registration, birth_date,
   initiation_date, elevation_date, exaltation_date, affiliation_date, installation_date,
   emeritus_mason_date, provect_mason_date, image_url, deceased,
-  created_at, updated_at
+  is_president, terms, created_at, updated_at
 FROM workers
 ORDER BY number ASC
 `
 
-func (q *Queries) GetAllWorkers(ctx context.Context) ([]Worker, error) {
+type GetAllWorkersRow struct {
+	ID                string
+	Number            int32
+	Name              string
+	Registration      string
+	BirthDate         time.Time
+	InitiationDate    sql.NullTime
+	ElevationDate     sql.NullTime
+	ExaltationDate    sql.NullTime
+	AffiliationDate   sql.NullTime
+	InstallationDate  sql.NullTime
+	EmeritusMasonDate sql.NullTime
+	ProvectMasonDate  sql.NullTime
+	ImageUrl          string
+	Deceased          bool
+	IsPresident       bool
+	Terms             json.RawMessage
+	CreatedAt         sql.NullTime
+	UpdatedAt         sql.NullTime
+}
+
+func (q *Queries) GetAllWorkers(ctx context.Context) ([]GetAllWorkersRow, error) {
 	rows, err := q.db.QueryContext(ctx, getAllWorkers)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Worker
+	var items []GetAllWorkersRow
 	for rows.Next() {
-		var i Worker
+		var i GetAllWorkersRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Number,
@@ -98,6 +124,8 @@ func (q *Queries) GetAllWorkers(ctx context.Context) ([]Worker, error) {
 			&i.ProvectMasonDate,
 			&i.ImageUrl,
 			&i.Deceased,
+			&i.IsPresident,
+			&i.Terms,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {
@@ -119,14 +147,35 @@ SELECT
   id, number, name, registration, birth_date,
   initiation_date, elevation_date, exaltation_date, affiliation_date, installation_date,
   emeritus_mason_date, provect_mason_date, image_url, deceased,
-  created_at, updated_at
+  is_president, terms, created_at, updated_at
 FROM workers
 WHERE id = ?
 `
 
-func (q *Queries) GetWorkerByID(ctx context.Context, id string) (Worker, error) {
+type GetWorkerByIDRow struct {
+	ID                string
+	Number            int32
+	Name              string
+	Registration      string
+	BirthDate         time.Time
+	InitiationDate    sql.NullTime
+	ElevationDate     sql.NullTime
+	ExaltationDate    sql.NullTime
+	AffiliationDate   sql.NullTime
+	InstallationDate  sql.NullTime
+	EmeritusMasonDate sql.NullTime
+	ProvectMasonDate  sql.NullTime
+	ImageUrl          string
+	Deceased          bool
+	IsPresident       bool
+	Terms             json.RawMessage
+	CreatedAt         sql.NullTime
+	UpdatedAt         sql.NullTime
+}
+
+func (q *Queries) GetWorkerByID(ctx context.Context, id string) (GetWorkerByIDRow, error) {
 	row := q.db.QueryRowContext(ctx, getWorkerByID, id)
-	var i Worker
+	var i GetWorkerByIDRow
 	err := row.Scan(
 		&i.ID,
 		&i.Number,
@@ -142,6 +191,8 @@ func (q *Queries) GetWorkerByID(ctx context.Context, id string) (Worker, error) 
 		&i.ProvectMasonDate,
 		&i.ImageUrl,
 		&i.Deceased,
+		&i.IsPresident,
+		&i.Terms,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -153,14 +204,35 @@ SELECT
   id, number, name, registration, birth_date,
   initiation_date, elevation_date, exaltation_date, affiliation_date, installation_date,
   emeritus_mason_date, provect_mason_date, image_url, deceased,
-  created_at, updated_at
+  is_president, terms, created_at, updated_at
 FROM workers
 WHERE number = ?
 `
 
-func (q *Queries) GetWorkerByNumber(ctx context.Context, number int32) (Worker, error) {
+type GetWorkerByNumberRow struct {
+	ID                string
+	Number            int32
+	Name              string
+	Registration      string
+	BirthDate         time.Time
+	InitiationDate    sql.NullTime
+	ElevationDate     sql.NullTime
+	ExaltationDate    sql.NullTime
+	AffiliationDate   sql.NullTime
+	InstallationDate  sql.NullTime
+	EmeritusMasonDate sql.NullTime
+	ProvectMasonDate  sql.NullTime
+	ImageUrl          string
+	Deceased          bool
+	IsPresident       bool
+	Terms             json.RawMessage
+	CreatedAt         sql.NullTime
+	UpdatedAt         sql.NullTime
+}
+
+func (q *Queries) GetWorkerByNumber(ctx context.Context, number int32) (GetWorkerByNumberRow, error) {
 	row := q.db.QueryRowContext(ctx, getWorkerByNumber, number)
-	var i Worker
+	var i GetWorkerByNumberRow
 	err := row.Scan(
 		&i.ID,
 		&i.Number,
@@ -176,6 +248,8 @@ func (q *Queries) GetWorkerByNumber(ctx context.Context, number int32) (Worker, 
 		&i.ProvectMasonDate,
 		&i.ImageUrl,
 		&i.Deceased,
+		&i.IsPresident,
+		&i.Terms,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -187,14 +261,35 @@ SELECT
   id, number, name, registration, birth_date,
   initiation_date, elevation_date, exaltation_date, affiliation_date, installation_date,
   emeritus_mason_date, provect_mason_date, image_url, deceased,
-  created_at, updated_at
+  is_president, terms, created_at, updated_at
 FROM workers
 WHERE registration = ?
 `
 
-func (q *Queries) GetWorkerByRegistration(ctx context.Context, registration string) (Worker, error) {
+type GetWorkerByRegistrationRow struct {
+	ID                string
+	Number            int32
+	Name              string
+	Registration      string
+	BirthDate         time.Time
+	InitiationDate    sql.NullTime
+	ElevationDate     sql.NullTime
+	ExaltationDate    sql.NullTime
+	AffiliationDate   sql.NullTime
+	InstallationDate  sql.NullTime
+	EmeritusMasonDate sql.NullTime
+	ProvectMasonDate  sql.NullTime
+	ImageUrl          string
+	Deceased          bool
+	IsPresident       bool
+	Terms             json.RawMessage
+	CreatedAt         sql.NullTime
+	UpdatedAt         sql.NullTime
+}
+
+func (q *Queries) GetWorkerByRegistration(ctx context.Context, registration string) (GetWorkerByRegistrationRow, error) {
 	row := q.db.QueryRowContext(ctx, getWorkerByRegistration, registration)
-	var i Worker
+	var i GetWorkerByRegistrationRow
 	err := row.Scan(
 		&i.ID,
 		&i.Number,
@@ -210,6 +305,8 @@ func (q *Queries) GetWorkerByRegistration(ctx context.Context, registration stri
 		&i.ProvectMasonDate,
 		&i.ImageUrl,
 		&i.Deceased,
+		&i.IsPresident,
+		&i.Terms,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -222,7 +319,7 @@ SET
   number = ?, name = ?, registration = ?, birth_date = ?,
   initiation_date = ?, elevation_date = ?, exaltation_date = ?, affiliation_date = ?,
   installation_date = ?, emeritus_mason_date = ?, provect_mason_date = ?,
-  image_url = ?, deceased = ?,
+  image_url = ?, deceased = ?, is_president = ?, terms = ?,
   updated_at = CURRENT_TIMESTAMP
 WHERE id = ?
 `
@@ -241,6 +338,8 @@ type UpdateWorkerParams struct {
 	ProvectMasonDate  sql.NullTime
 	ImageUrl          string
 	Deceased          bool
+	IsPresident       bool
+	Terms             json.RawMessage
 	ID                string
 }
 
@@ -259,6 +358,8 @@ func (q *Queries) UpdateWorker(ctx context.Context, arg UpdateWorkerParams) (sql
 		arg.ProvectMasonDate,
 		arg.ImageUrl,
 		arg.Deceased,
+		arg.IsPresident,
+		arg.Terms,
 		arg.ID,
 	)
 }

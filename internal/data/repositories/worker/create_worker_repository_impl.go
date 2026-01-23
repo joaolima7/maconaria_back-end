@@ -57,6 +57,11 @@ func (r *CreateWorkerRepositoryImpl) CreateWorker(worker *entity.Worker) (*entit
 		installationDate = sql.NullTime{Time: *worker.InstallationDate, Valid: true}
 	}
 
+	termsJSON, err := worker.TermsToJSON()
+	if err != nil {
+		return nil, apperrors.NewValidationError("mandatos", "Erro ao processar mandatos!")
+	}
+
 	params := db.CreateWorkerParams{
 		ID:                worker.ID,
 		Number:            worker.Number,
@@ -72,6 +77,8 @@ func (r *CreateWorkerRepositoryImpl) CreateWorker(worker *entity.Worker) (*entit
 		ProvectMasonDate:  provectMasonDate,
 		ImageUrl:          worker.ImageURL,
 		Deceased:          worker.Deceased,
+		IsPresident:       worker.IsPresident,
+		Terms:             []byte(termsJSON),
 	}
 
 	_, err = r.queries.CreateWorker(ctx, params)
@@ -84,7 +91,7 @@ func (r *CreateWorkerRepositoryImpl) CreateWorker(worker *entity.Worker) (*entit
 		return nil, apperrors.WrapDatabaseError(err, "buscar obreiro criado")
 	}
 
-	return dbWorkerToEntity(workerDB), nil
+	return dbWorkerRowToEntity(workerDB), nil
 }
 
 func dbWorkerToEntity(workerDB db.Worker) *entity.Worker {
@@ -113,6 +120,11 @@ func dbWorkerToEntity(workerDB db.Worker) *entity.Worker {
 		provectMasonDate = &workerDB.ProvectMasonDate.Time
 	}
 
+	terms, err := entity.TermsFromJSON(string(workerDB.Terms))
+	if err != nil {
+		terms = []string{}
+	}
+
 	return &entity.Worker{
 		ID:                workerDB.ID,
 		Number:            workerDB.Number,
@@ -128,6 +140,114 @@ func dbWorkerToEntity(workerDB db.Worker) *entity.Worker {
 		ProvectMasonDate:  provectMasonDate,
 		ImageURL:          workerDB.ImageUrl,
 		Deceased:          workerDB.Deceased,
+		IsPresident:       workerDB.IsPresident,
+		Terms:             terms,
+		CreatedAt:         workerDB.CreatedAt.Time,
+		UpdatedAt:         workerDB.UpdatedAt.Time,
+	}
+}
+
+func dbWorkerRowToEntity(workerDB db.GetWorkerByIDRow) *entity.Worker {
+	var initiationDate, elevationDate, exaltationDate, affiliationDate, installationDate *time.Time
+	var emeritusMasonDate, provectMasonDate *time.Time
+
+	if workerDB.InitiationDate.Valid {
+		initiationDate = &workerDB.InitiationDate.Time
+	}
+	if workerDB.ElevationDate.Valid {
+		elevationDate = &workerDB.ElevationDate.Time
+	}
+	if workerDB.ExaltationDate.Valid {
+		exaltationDate = &workerDB.ExaltationDate.Time
+	}
+	if workerDB.AffiliationDate.Valid {
+		affiliationDate = &workerDB.AffiliationDate.Time
+	}
+	if workerDB.InstallationDate.Valid {
+		installationDate = &workerDB.InstallationDate.Time
+	}
+	if workerDB.EmeritusMasonDate.Valid {
+		emeritusMasonDate = &workerDB.EmeritusMasonDate.Time
+	}
+	if workerDB.ProvectMasonDate.Valid {
+		provectMasonDate = &workerDB.ProvectMasonDate.Time
+	}
+
+	terms, err := entity.TermsFromJSON(string(workerDB.Terms))
+	if err != nil {
+		terms = []string{}
+	}
+
+	return &entity.Worker{
+		ID:                workerDB.ID,
+		Number:            workerDB.Number,
+		Name:              workerDB.Name,
+		Registration:      workerDB.Registration,
+		BirthDate:         workerDB.BirthDate,
+		InitiationDate:    initiationDate,
+		ElevationDate:     elevationDate,
+		ExaltationDate:    exaltationDate,
+		AffiliationDate:   affiliationDate,
+		InstallationDate:  installationDate,
+		EmeritusMasonDate: emeritusMasonDate,
+		ProvectMasonDate:  provectMasonDate,
+		ImageURL:          workerDB.ImageUrl,
+		Deceased:          workerDB.Deceased,
+		IsPresident:       workerDB.IsPresident,
+		Terms:             terms,
+		CreatedAt:         workerDB.CreatedAt.Time,
+		UpdatedAt:         workerDB.UpdatedAt.Time,
+	}
+}
+
+func dbWorkerAllRowToEntity(workerDB db.GetAllWorkersRow) *entity.Worker {
+	var initiationDate, elevationDate, exaltationDate, affiliationDate, installationDate *time.Time
+	var emeritusMasonDate, provectMasonDate *time.Time
+
+	if workerDB.InitiationDate.Valid {
+		initiationDate = &workerDB.InitiationDate.Time
+	}
+	if workerDB.ElevationDate.Valid {
+		elevationDate = &workerDB.ElevationDate.Time
+	}
+	if workerDB.ExaltationDate.Valid {
+		exaltationDate = &workerDB.ExaltationDate.Time
+	}
+	if workerDB.AffiliationDate.Valid {
+		affiliationDate = &workerDB.AffiliationDate.Time
+	}
+	if workerDB.InstallationDate.Valid {
+		installationDate = &workerDB.InstallationDate.Time
+	}
+	if workerDB.EmeritusMasonDate.Valid {
+		emeritusMasonDate = &workerDB.EmeritusMasonDate.Time
+	}
+	if workerDB.ProvectMasonDate.Valid {
+		provectMasonDate = &workerDB.ProvectMasonDate.Time
+	}
+
+	terms, err := entity.TermsFromJSON(string(workerDB.Terms))
+	if err != nil {
+		terms = []string{}
+	}
+
+	return &entity.Worker{
+		ID:                workerDB.ID,
+		Number:            workerDB.Number,
+		Name:              workerDB.Name,
+		Registration:      workerDB.Registration,
+		BirthDate:         workerDB.BirthDate,
+		InitiationDate:    initiationDate,
+		ElevationDate:     elevationDate,
+		ExaltationDate:    exaltationDate,
+		AffiliationDate:   affiliationDate,
+		InstallationDate:  installationDate,
+		EmeritusMasonDate: emeritusMasonDate,
+		ProvectMasonDate:  provectMasonDate,
+		ImageURL:          workerDB.ImageUrl,
+		Deceased:          workerDB.Deceased,
+		IsPresident:       workerDB.IsPresident,
+		Terms:             terms,
 		CreatedAt:         workerDB.CreatedAt.Time,
 		UpdatedAt:         workerDB.UpdatedAt.Time,
 	}

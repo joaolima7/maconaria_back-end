@@ -13,20 +13,22 @@ import (
 )
 
 type UpdateWorkerByIDInputDTO struct {
-	ID                string  `json:"id"`
-	Number            int32   `json:"number" validate:"required,gt=0"`
-	Name              string  `json:"name" validate:"required,min=3"`
-	Registration      string  `json:"registration" validate:"required"`
-	BirthDate         string  `json:"birth_date" validate:"required"`
-	InitiationDate    *string `json:"initiation_date,omitempty"`
-	ElevationDate     *string `json:"elevation_date,omitempty"`
-	ExaltationDate    *string `json:"exaltation_date,omitempty"`
-	AffiliationDate   *string `json:"affiliation_date,omitempty"`
-	InstallationDate  *string `json:"installation_date,omitempty"`
-	EmeritusMasonDate *string `json:"emeritus_mason_date,omitempty"`
-	ProvectMasonDate  *string `json:"provect_mason_date,omitempty"`
-	ImageData         string  `json:"image_data,omitempty"`
-	Deceased          bool    `json:"deceased"`
+	ID                string   `json:"id"`
+	Number            int32    `json:"number" validate:"required,gt=0"`
+	Name              string   `json:"name" validate:"required,min=3"`
+	Registration      string   `json:"registration" validate:"required"`
+	BirthDate         string   `json:"birth_date" validate:"required"`
+	InitiationDate    *string  `json:"initiation_date,omitempty"`
+	ElevationDate     *string  `json:"elevation_date,omitempty"`
+	ExaltationDate    *string  `json:"exaltation_date,omitempty"`
+	AffiliationDate   *string  `json:"affiliation_date,omitempty"`
+	InstallationDate  *string  `json:"installation_date,omitempty"`
+	EmeritusMasonDate *string  `json:"emeritus_mason_date,omitempty"`
+	ProvectMasonDate  *string  `json:"provect_mason_date,omitempty"`
+	ImageData         string   `json:"image_data,omitempty"`
+	Deceased          bool     `json:"deceased"`
+	IsPresident       bool     `json:"is_president"`
+	Terms             []string `json:"terms"`
 }
 
 type UpdateWorkerByIDOutputDTO struct {
@@ -44,6 +46,8 @@ type UpdateWorkerByIDOutputDTO struct {
 	ProvectMasonDate  *time.Time `json:"provect_mason_date,omitempty"`
 	ImageURL          string     `json:"image_url"`
 	Deceased          bool       `json:"deceased"`
+	IsPresident       bool       `json:"is_president"`
+	Terms             []string   `json:"terms,omitempty"`
 	CreatedAt         time.Time  `json:"created_at"`
 	UpdatedAt         time.Time  `json:"updated_at"`
 }
@@ -170,6 +174,8 @@ func (uc *UpdateWorkerByIDUseCase) Execute(input UpdateWorkerByIDInputDTO) (*Upd
 		ProvectMasonDate:  provectMasonDate,
 		ImageURL:          imageURL,
 		Deceased:          input.Deceased,
+		IsPresident:       input.IsPresident,
+		Terms:             input.Terms,
 		UpdatedAt:         time.Now(),
 	}
 
@@ -209,6 +215,8 @@ func (uc *UpdateWorkerByIDUseCase) Execute(input UpdateWorkerByIDInputDTO) (*Upd
 		ProvectMasonDate:  workerUpdated.ProvectMasonDate,
 		ImageURL:          workerUpdated.ImageURL,
 		Deceased:          workerUpdated.Deceased,
+		IsPresident:       workerUpdated.IsPresident,
+		Terms:             workerUpdated.Terms,
 		CreatedAt:         workerUpdated.CreatedAt,
 		UpdatedAt:         workerUpdated.UpdatedAt,
 	}, nil

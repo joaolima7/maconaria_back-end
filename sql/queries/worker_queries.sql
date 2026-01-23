@@ -2,15 +2,15 @@
 INSERT INTO workers (
   id, number, name, registration, birth_date,
   initiation_date, elevation_date, exaltation_date, affiliation_date, installation_date,
-  emeritus_mason_date, provect_mason_date, image_url, deceased
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+  emeritus_mason_date, provect_mason_date, image_url, deceased, is_president, terms
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 -- name: GetWorkerByID :one
 SELECT
   id, number, name, registration, birth_date,
   initiation_date, elevation_date, exaltation_date, affiliation_date, installation_date,
   emeritus_mason_date, provect_mason_date, image_url, deceased,
-  created_at, updated_at
+  is_president, terms, created_at, updated_at
 FROM workers
 WHERE id = ?;
 
@@ -19,7 +19,7 @@ SELECT
   id, number, name, registration, birth_date,
   initiation_date, elevation_date, exaltation_date, affiliation_date, installation_date,
   emeritus_mason_date, provect_mason_date, image_url, deceased,
-  created_at, updated_at
+  is_president, terms, created_at, updated_at
 FROM workers
 WHERE number = ?;
 
@@ -28,7 +28,7 @@ SELECT
   id, number, name, registration, birth_date,
   initiation_date, elevation_date, exaltation_date, affiliation_date, installation_date,
   emeritus_mason_date, provect_mason_date, image_url, deceased,
-  created_at, updated_at
+  is_president, terms, created_at, updated_at
 FROM workers
 WHERE registration = ?;
 
@@ -37,7 +37,7 @@ SELECT
   id, number, name, registration, birth_date,
   initiation_date, elevation_date, exaltation_date, affiliation_date, installation_date,
   emeritus_mason_date, provect_mason_date, image_url, deceased,
-  created_at, updated_at
+  is_president, terms, created_at, updated_at
 FROM workers
 ORDER BY number ASC;
 
@@ -47,7 +47,7 @@ SET
   number = ?, name = ?, registration = ?, birth_date = ?,
   initiation_date = ?, elevation_date = ?, exaltation_date = ?, affiliation_date = ?,
   installation_date = ?, emeritus_mason_date = ?, provect_mason_date = ?,
-  image_url = ?, deceased = ?,
+  image_url = ?, deceased = ?, is_president = ?, terms = ?,
   updated_at = CURRENT_TIMESTAMP
 WHERE id = ?;
 
