@@ -47,7 +47,7 @@ type UpdateWorkerByIDOutputDTO struct {
 	ImageURL          string     `json:"image_url"`
 	Deceased          bool       `json:"deceased"`
 	IsPresident       bool       `json:"is_president"`
-	Terms             []string   `json:"terms,omitempty"`
+	Terms             []string   `json:"terms"`
 	CreatedAt         time.Time  `json:"created_at"`
 	UpdatedAt         time.Time  `json:"updated_at"`
 }
