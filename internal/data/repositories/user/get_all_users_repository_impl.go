@@ -27,13 +27,14 @@ func (r *GetAllUsersRepositoryImpl) GetAllUsers() ([]*entity.User, error) {
 
 	for _, userDB := range usersDb {
 		user := &entity.User{
-			ID:       userDB.ID,
-			Name:     userDB.Name,
-			Email:    userDB.Email,
-			CIM:      userDB.Cim,
-			Degree:   entity.UserDegree(userDB.Degree),
-			IsActive: userDB.IsActive,
-			IsAdmin:  userDB.IsAdmin,
+			ID:        userDB.ID,
+			Name:      userDB.Name,
+			Email:     userDB.Email,
+			CIM:       userDB.Cim,
+			Degree:    entity.UserDegree(userDB.Degree),
+			IsActive:  userDB.IsActive,
+			IsAdmin:   userDB.IsAdmin,
+			IsRegular: userDB.IsRegular,
 		}
 
 		users = append(users, user)

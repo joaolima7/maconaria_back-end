@@ -18,13 +18,14 @@ type LoginOutputDTO struct {
 }
 
 type UserDTO struct {
-	ID       string `json:"id"`
-	Name     string `json:"name"`
-	Email    string `json:"email"`
-	CIM      string `json:"cim"`
-	Degree   string `json:"degree"`
-	IsActive bool   `json:"is_active"`
-	IsAdmin  bool   `json:"is_admin"`
+	ID        string `json:"id"`
+	Name      string `json:"name"`
+	Email     string `json:"email"`
+	CIM       string `json:"cim"`
+	Degree    string `json:"degree"`
+	IsActive  bool   `json:"is_active"`
+	IsAdmin   bool   `json:"is_admin"`
+	IsRegular bool   `json:"is_regular"`
 }
 
 type LoginUseCase struct {
@@ -63,13 +64,14 @@ func (uc *LoginUseCase) Execute(input LoginInputDTO) (*LoginOutputDTO, error) {
 
 	return &LoginOutputDTO{
 		User: UserDTO{
-			ID:       user.ID,
-			Name:     user.Name,
-			Email:    user.Email,
-			CIM:      user.CIM,
-			Degree:   string(user.Degree),
-			IsActive: user.IsActive,
-			IsAdmin:  user.IsAdmin,
+			ID:        user.ID,
+			Name:      user.Name,
+			Email:     user.Email,
+			CIM:       user.CIM,
+			Degree:    string(user.Degree),
+			IsActive:  user.IsActive,
+			IsAdmin:   user.IsAdmin,
+			IsRegular: user.IsRegular,
 		},
 		Token: token,
 	}, nil

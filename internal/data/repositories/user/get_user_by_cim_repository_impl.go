@@ -38,6 +38,7 @@ func (r *GetUserByCIMRepositoryImpl) GetUserByCIM(cim string) (*entity.User, err
 		Degree:    entity.UserDegree(userDB.Degree),
 		IsActive:  userDB.IsActive,
 		IsAdmin:   userDB.IsAdmin,
+		IsRegular: userDB.IsRegular,
 		CreatedAt: userDB.CreatedAt.Time,
 		UpdatedAt: userDB.UpdatedAt.Time,
 	}, nil

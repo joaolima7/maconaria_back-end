@@ -11,19 +11,20 @@ import (
 )
 
 const createUser = `-- name: CreateUser :execresult
-INSERT INTO users (id, name, email, password, cim, degree, is_active, is_admin)
-VALUES(?, ?, ?, ?, ?, ?, ?, ?)
+INSERT INTO users (id, name, email, password, cim, degree, is_active, is_admin, is_regular)
+VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)
 `
 
 type CreateUserParams struct {
-	ID       string
-	Name     string
-	Email    string
-	Password string
-	Cim      string
-	Degree   UsersDegree
-	IsActive bool
-	IsAdmin  bool
+	ID        string
+	Name      string
+	Email     string
+	Password  string
+	Cim       string
+	Degree    UsersDegree
+	IsActive  bool
+	IsAdmin   bool
+	IsRegular bool
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (sql.Result, error) {
@@ -36,6 +37,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (sql.Res
 		arg.Degree,
 		arg.IsActive,
 		arg.IsAdmin,
+		arg.IsRegular,
 	)
 }
 
@@ -49,29 +51,44 @@ func (q *Queries) DeleteUser(ctx context.Context, id string) error {
 }
 
 const getAllUsers = `-- name: GetAllUsers :many
-SELECT id, name, email, password, is_active, is_admin, created_at, updated_at, cim, degree FROM users
+SELECT id, name, email, password, cim, degree, is_active, is_admin, is_regular, created_at, updated_at FROM users
 `
 
-func (q *Queries) GetAllUsers(ctx context.Context) ([]User, error) {
+type GetAllUsersRow struct {
+	ID        string
+	Name      string
+	Email     string
+	Password  string
+	Cim       string
+	Degree    UsersDegree
+	IsActive  bool
+	IsAdmin   bool
+	IsRegular bool
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
+}
+
+func (q *Queries) GetAllUsers(ctx context.Context) ([]GetAllUsersRow, error) {
 	rows, err := q.db.QueryContext(ctx, getAllUsers)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []User
+	var items []GetAllUsersRow
 	for rows.Next() {
-		var i User
+		var i GetAllUsersRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Name,
 			&i.Email,
 			&i.Password,
-			&i.IsActive,
-			&i.IsAdmin,
-			&i.CreatedAt,
-			&i.UpdatedAt,
 			&i.Cim,
 			&i.Degree,
+			&i.IsActive,
+			&i.IsAdmin,
+			&i.IsRegular,
+			&i.CreatedAt,
+			&i.UpdatedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -87,85 +104,131 @@ func (q *Queries) GetAllUsers(ctx context.Context) ([]User, error) {
 }
 
 const getUserByCIM = `-- name: GetUserByCIM :one
-SELECT id, name, email, password, is_active, is_admin, created_at, updated_at, cim, degree FROM users WHERE cim = ?
+SELECT id, name, email, password, cim, degree, is_active, is_admin, is_regular, created_at, updated_at FROM users WHERE cim = ?
 `
 
-func (q *Queries) GetUserByCIM(ctx context.Context, cim string) (User, error) {
+type GetUserByCIMRow struct {
+	ID        string
+	Name      string
+	Email     string
+	Password  string
+	Cim       string
+	Degree    UsersDegree
+	IsActive  bool
+	IsAdmin   bool
+	IsRegular bool
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
+}
+
+func (q *Queries) GetUserByCIM(ctx context.Context, cim string) (GetUserByCIMRow, error) {
 	row := q.db.QueryRowContext(ctx, getUserByCIM, cim)
-	var i User
+	var i GetUserByCIMRow
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
 		&i.Email,
 		&i.Password,
-		&i.IsActive,
-		&i.IsAdmin,
-		&i.CreatedAt,
-		&i.UpdatedAt,
 		&i.Cim,
 		&i.Degree,
+		&i.IsActive,
+		&i.IsAdmin,
+		&i.IsRegular,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, name, email, password, is_active, is_admin, created_at, updated_at, cim, degree FROM users WHERE email = ?
+SELECT id, name, email, password, cim, degree, is_active, is_admin, is_regular, created_at, updated_at FROM users WHERE email = ?
 `
 
-func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error) {
+type GetUserByEmailRow struct {
+	ID        string
+	Name      string
+	Email     string
+	Password  string
+	Cim       string
+	Degree    UsersDegree
+	IsActive  bool
+	IsAdmin   bool
+	IsRegular bool
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
+}
+
+func (q *Queries) GetUserByEmail(ctx context.Context, email string) (GetUserByEmailRow, error) {
 	row := q.db.QueryRowContext(ctx, getUserByEmail, email)
-	var i User
+	var i GetUserByEmailRow
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
 		&i.Email,
 		&i.Password,
-		&i.IsActive,
-		&i.IsAdmin,
-		&i.CreatedAt,
-		&i.UpdatedAt,
 		&i.Cim,
 		&i.Degree,
+		&i.IsActive,
+		&i.IsAdmin,
+		&i.IsRegular,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
 
 const getUserByID = `-- name: GetUserByID :one
-SELECT id, name, email, password, is_active, is_admin, created_at, updated_at, cim, degree FROM users WHERE id = ?
+SELECT id, name, email, password, cim, degree, is_active, is_admin, is_regular, created_at, updated_at FROM users WHERE id = ?
 `
 
-func (q *Queries) GetUserByID(ctx context.Context, id string) (User, error) {
+type GetUserByIDRow struct {
+	ID        string
+	Name      string
+	Email     string
+	Password  string
+	Cim       string
+	Degree    UsersDegree
+	IsActive  bool
+	IsAdmin   bool
+	IsRegular bool
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
+}
+
+func (q *Queries) GetUserByID(ctx context.Context, id string) (GetUserByIDRow, error) {
 	row := q.db.QueryRowContext(ctx, getUserByID, id)
-	var i User
+	var i GetUserByIDRow
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
 		&i.Email,
 		&i.Password,
-		&i.IsActive,
-		&i.IsAdmin,
-		&i.CreatedAt,
-		&i.UpdatedAt,
 		&i.Cim,
 		&i.Degree,
+		&i.IsActive,
+		&i.IsAdmin,
+		&i.IsRegular,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
 
 const updateUser = `-- name: UpdateUser :execresult
 UPDATE users
-SET name = ?, email = ?, cim = ?, degree = ?, is_active = ?, is_admin = ?
+SET name = ?, email = ?, cim = ?, degree = ?, is_active = ?, is_admin = ?, is_regular = ?
 WHERE id = ?
 `
 
 type UpdateUserParams struct {
-	Name     string
-	Email    string
-	Cim      string
-	Degree   UsersDegree
-	IsActive bool
-	IsAdmin  bool
-	ID       string
+	Name      string
+	Email     string
+	Cim       string
+	Degree    UsersDegree
+	IsActive  bool
+	IsAdmin   bool
+	IsRegular bool
+	ID        string
 }
 
 func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (sql.Result, error) {
@@ -176,6 +239,7 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (sql.Res
 		arg.Degree,
 		arg.IsActive,
 		arg.IsAdmin,
+		arg.IsRegular,
 		arg.ID,
 	)
 }

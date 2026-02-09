@@ -37,6 +37,7 @@ func (r *GetUserByEmailRepositoryImpl) GetUserByEmail(email string) (*entity.Use
 		Degree:    entity.UserDegree(userDB.Degree),
 		IsActive:  userDB.IsActive,
 		IsAdmin:   userDB.IsAdmin,
+		IsRegular: userDB.IsRegular,
 		CreatedAt: userDB.CreatedAt.Time,
 		UpdatedAt: userDB.UpdatedAt.Time,
 	}, nil

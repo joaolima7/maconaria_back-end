@@ -25,12 +25,13 @@ type User struct {
 	Degree    UserDegree
 	IsActive  bool
 	IsAdmin   bool
+	IsRegular bool
 	Posts     []*Post
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
 
-func NewUser(id string, name string, email string, password string, cim string, degree UserDegree, isActive bool, isAdmin bool) (*User, error) {
+func NewUser(id string, name string, email string, password string, cim string, degree UserDegree, isActive bool, isAdmin bool, isRegular bool) (*User, error) {
 	user := &User{
 		ID:        id,
 		Name:      name,
@@ -40,6 +41,7 @@ func NewUser(id string, name string, email string, password string, cim string, 
 		Degree:    degree,
 		IsActive:  isActive,
 		IsAdmin:   isAdmin,
+		IsRegular: isRegular,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}

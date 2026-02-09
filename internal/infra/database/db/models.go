@@ -208,6 +208,7 @@ type User struct {
 	UpdatedAt sql.NullTime
 	Cim       string
 	Degree    UsersDegree
+	IsRegular bool
 }
 
 type Wordkey struct {

@@ -40,6 +40,7 @@ func (r *GetUserByIdRepositoryImpl) GetUserById(id string) (*entity.User, error)
 		Degree:    entity.UserDegree(userDB.Degree),
 		IsActive:  userDB.IsActive,
 		IsAdmin:   userDB.IsAdmin,
+		IsRegular: userDB.IsRegular,
 		CreatedAt: userDB.CreatedAt.Time,
 		UpdatedAt: userDB.UpdatedAt.Time,
 	}, nil

@@ -55,7 +55,7 @@ func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	output, err := h.CreateUserUseCase.Execute(input)
 	if err != nil {
-		response.Error(w, err) // AppError vem direto do usecase
+		response.Error(w, err)
 		return
 	}
 

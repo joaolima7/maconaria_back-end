@@ -8,23 +8,25 @@ import (
 )
 
 type UpdateUserByIdInputDTO struct {
-	ID       string `json:"id"`
-	Name     string `json:"name" validate:"required"`
-	Email    string `json:"email" validate:"required,email"`
-	CIM      string `json:"cim" validate:"required"`
-	Degree   string `json:"degree" validate:"required,oneof=apprentice companion master"`
-	IsActive bool   `json:"is_active"`
-	IsAdmin  bool   `json:"is_admin"`
+	ID        string `json:"id"`
+	Name      string `json:"name" validate:"required"`
+	Email     string `json:"email" validate:"required,email"`
+	CIM       string `json:"cim" validate:"required"`
+	Degree    string `json:"degree" validate:"required,oneof=apprentice companion master"`
+	IsActive  bool   `json:"is_active"`
+	IsAdmin   bool   `json:"is_admin"`
+	IsRegular bool   `json:"is_regular"`
 }
 
 type UpdateUserByIdOutputDTO struct {
-	ID       string `json:"id"`
-	Name     string `json:"name"`
-	Email    string `json:"email"`
-	CIM      string `json:"cim"`
-	Degree   string `json:"degree"`
-	IsActive bool   `json:"is_active"`
-	IsAdmin  bool   `json:"is_admin"`
+	ID        string `json:"id"`
+	Name      string `json:"name"`
+	Email     string `json:"email"`
+	CIM       string `json:"cim"`
+	Degree    string `json:"degree"`
+	IsActive  bool   `json:"is_active"`
+	IsAdmin   bool   `json:"is_admin"`
+	IsRegular bool   `json:"is_regular"`
 }
 
 type UpdateUserByIdUseCase struct {
@@ -46,6 +48,7 @@ func (uc *UpdateUserByIdUseCase) Execute(input UpdateUserByIdInputDTO) (*UpdateU
 		Degree:    entity.UserDegree(input.Degree),
 		IsActive:  input.IsActive,
 		IsAdmin:   input.IsAdmin,
+		IsRegular: input.IsRegular,
 		UpdatedAt: time.Now(),
 	}
 
@@ -68,12 +71,13 @@ func (uc *UpdateUserByIdUseCase) Execute(input UpdateUserByIdInputDTO) (*UpdateU
 	}
 
 	return &UpdateUserByIdOutputDTO{
-		ID:       updatedUser.ID,
-		Name:     updatedUser.Name,
-		Email:    updatedUser.Email,
-		CIM:      updatedUser.CIM,
-		Degree:   string(updatedUser.Degree),
-		IsActive: updatedUser.IsActive,
-		IsAdmin:  updatedUser.IsAdmin,
+		ID:        updatedUser.ID,
+		Name:      updatedUser.Name,
+		Email:     updatedUser.Email,
+		CIM:       updatedUser.CIM,
+		Degree:    string(updatedUser.Degree),
+		IsActive:  updatedUser.IsActive,
+		IsAdmin:   updatedUser.IsAdmin,
+		IsRegular: updatedUser.IsRegular,
 	}, nil
 }

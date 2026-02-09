@@ -9,13 +9,14 @@ import (
 )
 
 type CreateUserInputDTO struct {
-	Name     string `json:"name" validate:"required"`
-	Email    string `json:"email" validate:"required,email"`
-	Password string `json:"password" validate:"required,min=8"`
-	CIM      string `json:"cim" validate:"required"`
-	Degree   string `json:"degree" validate:"required,oneof=apprentice companion master"`
-	IsAdmin  bool   `json:"is_admin"`
-	IsActive bool   `json:"is_active"`
+	Name      string `json:"name" validate:"required"`
+	Email     string `json:"email" validate:"required,email"`
+	Password  string `json:"password" validate:"required,min=8"`
+	CIM       string `json:"cim" validate:"required"`
+	Degree    string `json:"degree" validate:"required,oneof=apprentice companion master"`
+	IsAdmin   bool   `json:"is_admin"`
+	IsActive  bool   `json:"is_active"`
+	IsRegular bool   `json:"is_regular"`
 }
 
 type CreateUserOutputDTO struct {
@@ -26,6 +27,7 @@ type CreateUserOutputDTO struct {
 	Degree    string    `json:"degree"`
 	IsAdmin   bool      `json:"is_admin"`
 	IsActive  bool      `json:"is_active"`
+	IsRegular bool      `json:"is_regular"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
@@ -51,6 +53,7 @@ func (uc *CreateUserUseCase) Execute(input CreateUserInputDTO) (*CreateUserOutpu
 		entity.UserDegree(input.Degree),
 		input.IsActive,
 		input.IsAdmin,
+		input.IsRegular,
 	)
 	if err != nil {
 		return nil, err
@@ -69,6 +72,7 @@ func (uc *CreateUserUseCase) Execute(input CreateUserInputDTO) (*CreateUserOutpu
 		Degree:    string(userCreated.Degree),
 		IsAdmin:   userCreated.IsAdmin,
 		IsActive:  userCreated.IsActive,
+		IsRegular: userCreated.IsRegular,
 		CreatedAt: user.CreatedAt,
 		UpdatedAt: user.UpdatedAt,
 	}, nil

@@ -18,6 +18,7 @@ type GetUserByIdOutputDTO struct {
 	Degree    string    `json:"degree"`
 	IsAdmin   bool      `json:"is_admin"`
 	IsActive  bool      `json:"is_active"`
+	IsRegular bool      `json:"is_regular"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
@@ -46,6 +47,7 @@ func (uc *GetUserByIdUseCase) Execute(input GetUserByIdInputDTO) (*GetUserByIdOu
 		Degree:    string(user.Degree),
 		IsAdmin:   user.IsAdmin,
 		IsActive:  user.IsActive,
+		IsRegular: user.IsRegular,
 		CreatedAt: user.CreatedAt,
 		UpdatedAt: user.UpdatedAt,
 	}, nil

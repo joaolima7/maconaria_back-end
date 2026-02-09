@@ -1,22 +1,22 @@
 -- name: CreateUser :execresult
-INSERT INTO users (id, name, email, password, cim, degree, is_active, is_admin)
-VALUES(?, ?, ?, ?, ?, ?, ?, ?);
+INSERT INTO users (id, name, email, password, cim, degree, is_active, is_admin, is_regular)
+VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 -- name: GetAllUsers :many
-SELECT * FROM users;
+SELECT id, name, email, password, cim, degree, is_active, is_admin, is_regular, created_at, updated_at FROM users;
 
 -- name: GetUserByID :one
-SELECT * FROM users WHERE id = ?;
+SELECT id, name, email, password, cim, degree, is_active, is_admin, is_regular, created_at, updated_at FROM users WHERE id = ?;
 
 -- name: GetUserByEmail :one
-SELECT * FROM users WHERE email = ?;
+SELECT id, name, email, password, cim, degree, is_active, is_admin, is_regular, created_at, updated_at FROM users WHERE email = ?;
 
 -- name: GetUserByCIM :one
-SELECT * FROM users WHERE cim = ?;
+SELECT id, name, email, password, cim, degree, is_active, is_admin, is_regular, created_at, updated_at FROM users WHERE cim = ?;
 
 -- name: UpdateUser :execresult
 UPDATE users
-SET name = ?, email = ?, cim = ?, degree = ?, is_active = ?, is_admin = ?
+SET name = ?, email = ?, cim = ?, degree = ?, is_active = ?, is_admin = ?, is_regular = ?
 WHERE id = ?;
 
 -- name: UpdateUserPassword :exec
