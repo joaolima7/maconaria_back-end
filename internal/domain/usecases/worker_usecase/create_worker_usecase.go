@@ -28,6 +28,7 @@ type CreateWorkerInputDTO struct {
 	Deceased          bool     `json:"deceased"`
 	IsPresident       bool     `json:"is_president"`
 	Terms             []string `json:"terms"`
+	IsActive          bool     `json:"is_active"`
 }
 
 type CreateWorkerOutputDTO struct {
@@ -47,6 +48,7 @@ type CreateWorkerOutputDTO struct {
 	Deceased          bool       `json:"deceased"`
 	IsPresident       bool       `json:"is_president"`
 	Terms             []string   `json:"terms,omitempty"`
+	IsActive          bool       `json:"is_active"`
 	CreatedAt         time.Time  `json:"created_at"`
 	UpdatedAt         time.Time  `json:"updated_at"`
 }
@@ -167,6 +169,7 @@ func (uc *CreateWorkerUseCase) Execute(input CreateWorkerInputDTO) (*CreateWorke
 		input.Deceased,
 		input.IsPresident,
 		input.Terms,
+		input.IsActive,
 	)
 	if err != nil {
 
@@ -198,6 +201,7 @@ func (uc *CreateWorkerUseCase) Execute(input CreateWorkerInputDTO) (*CreateWorke
 		Deceased:          workerCreated.Deceased,
 		IsPresident:       workerCreated.IsPresident,
 		Terms:             workerCreated.Terms,
+		IsActive:          workerCreated.IsActive,
 		CreatedAt:         workerCreated.CreatedAt,
 		UpdatedAt:         workerCreated.UpdatedAt,
 	}, nil

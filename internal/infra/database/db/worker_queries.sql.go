@@ -16,8 +16,8 @@ const createWorker = `-- name: CreateWorker :execresult
 INSERT INTO workers (
   id, number, name, registration, birth_date,
   initiation_date, elevation_date, exaltation_date, affiliation_date, installation_date,
-  emeritus_mason_date, provect_mason_date, image_url, deceased, is_president, terms
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  emeritus_mason_date, provect_mason_date, image_url, deceased, is_president, terms, is_active
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `
 
 type CreateWorkerParams struct {
@@ -37,6 +37,7 @@ type CreateWorkerParams struct {
 	Deceased          bool
 	IsPresident       bool
 	Terms             json.RawMessage
+	IsActive          bool
 }
 
 func (q *Queries) CreateWorker(ctx context.Context, arg CreateWorkerParams) (sql.Result, error) {
@@ -57,6 +58,7 @@ func (q *Queries) CreateWorker(ctx context.Context, arg CreateWorkerParams) (sql
 		arg.Deceased,
 		arg.IsPresident,
 		arg.Terms,
+		arg.IsActive,
 	)
 }
 
@@ -74,7 +76,7 @@ SELECT
   id, number, name, registration, birth_date,
   initiation_date, elevation_date, exaltation_date, affiliation_date, installation_date,
   emeritus_mason_date, provect_mason_date, image_url, deceased,
-  is_president, terms, created_at, updated_at
+  is_president, terms, is_active, created_at, updated_at
 FROM workers
 ORDER BY number ASC
 `
@@ -96,6 +98,7 @@ type GetAllWorkersRow struct {
 	Deceased          bool
 	IsPresident       bool
 	Terms             json.RawMessage
+	IsActive          bool
 	CreatedAt         sql.NullTime
 	UpdatedAt         sql.NullTime
 }
@@ -126,6 +129,7 @@ func (q *Queries) GetAllWorkers(ctx context.Context) ([]GetAllWorkersRow, error)
 			&i.Deceased,
 			&i.IsPresident,
 			&i.Terms,
+			&i.IsActive,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {
@@ -147,7 +151,7 @@ SELECT
   id, number, name, registration, birth_date,
   initiation_date, elevation_date, exaltation_date, affiliation_date, installation_date,
   emeritus_mason_date, provect_mason_date, image_url, deceased,
-  is_president, terms, created_at, updated_at
+  is_president, terms, is_active, created_at, updated_at
 FROM workers
 WHERE id = ?
 `
@@ -169,6 +173,7 @@ type GetWorkerByIDRow struct {
 	Deceased          bool
 	IsPresident       bool
 	Terms             json.RawMessage
+	IsActive          bool
 	CreatedAt         sql.NullTime
 	UpdatedAt         sql.NullTime
 }
@@ -193,6 +198,7 @@ func (q *Queries) GetWorkerByID(ctx context.Context, id string) (GetWorkerByIDRo
 		&i.Deceased,
 		&i.IsPresident,
 		&i.Terms,
+		&i.IsActive,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -204,7 +210,7 @@ SELECT
   id, number, name, registration, birth_date,
   initiation_date, elevation_date, exaltation_date, affiliation_date, installation_date,
   emeritus_mason_date, provect_mason_date, image_url, deceased,
-  is_president, terms, created_at, updated_at
+  is_president, terms, is_active, created_at, updated_at
 FROM workers
 WHERE number = ?
 `
@@ -226,6 +232,7 @@ type GetWorkerByNumberRow struct {
 	Deceased          bool
 	IsPresident       bool
 	Terms             json.RawMessage
+	IsActive          bool
 	CreatedAt         sql.NullTime
 	UpdatedAt         sql.NullTime
 }
@@ -250,6 +257,7 @@ func (q *Queries) GetWorkerByNumber(ctx context.Context, number int32) (GetWorke
 		&i.Deceased,
 		&i.IsPresident,
 		&i.Terms,
+		&i.IsActive,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -261,7 +269,7 @@ SELECT
   id, number, name, registration, birth_date,
   initiation_date, elevation_date, exaltation_date, affiliation_date, installation_date,
   emeritus_mason_date, provect_mason_date, image_url, deceased,
-  is_president, terms, created_at, updated_at
+  is_president, terms, is_active, created_at, updated_at
 FROM workers
 WHERE registration = ?
 `
@@ -283,6 +291,7 @@ type GetWorkerByRegistrationRow struct {
 	Deceased          bool
 	IsPresident       bool
 	Terms             json.RawMessage
+	IsActive          bool
 	CreatedAt         sql.NullTime
 	UpdatedAt         sql.NullTime
 }
@@ -307,6 +316,7 @@ func (q *Queries) GetWorkerByRegistration(ctx context.Context, registration stri
 		&i.Deceased,
 		&i.IsPresident,
 		&i.Terms,
+		&i.IsActive,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -319,7 +329,7 @@ SET
   number = ?, name = ?, registration = ?, birth_date = ?,
   initiation_date = ?, elevation_date = ?, exaltation_date = ?, affiliation_date = ?,
   installation_date = ?, emeritus_mason_date = ?, provect_mason_date = ?,
-  image_url = ?, deceased = ?, is_president = ?, terms = ?,
+  image_url = ?, deceased = ?, is_president = ?, terms = ?, is_active = ?,
   updated_at = CURRENT_TIMESTAMP
 WHERE id = ?
 `
@@ -340,6 +350,7 @@ type UpdateWorkerParams struct {
 	Deceased          bool
 	IsPresident       bool
 	Terms             json.RawMessage
+	IsActive          bool
 	ID                string
 }
 
@@ -360,6 +371,7 @@ func (q *Queries) UpdateWorker(ctx context.Context, arg UpdateWorkerParams) (sql
 		arg.Deceased,
 		arg.IsPresident,
 		arg.Terms,
+		arg.IsActive,
 		arg.ID,
 	)
 }

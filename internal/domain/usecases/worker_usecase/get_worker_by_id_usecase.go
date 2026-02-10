@@ -27,6 +27,7 @@ type GetWorkerByIDOutputDTO struct {
 	Deceased          bool       `json:"deceased"`
 	IsPresident       bool       `json:"is_president"`
 	Terms             []string   `json:"terms"`
+	IsActive          bool       `json:"is_active"`
 	CreatedAt         time.Time  `json:"created_at"`
 	UpdatedAt         time.Time  `json:"updated_at"`
 }
@@ -64,6 +65,7 @@ func (uc *GetWorkerByIDUseCase) Execute(input GetWorkerByIDInputDTO) (*GetWorker
 		Deceased:          w.Deceased,
 		IsPresident:       w.IsPresident,
 		Terms:             w.Terms,
+		IsActive:          w.IsActive,
 		CreatedAt:         w.CreatedAt,
 		UpdatedAt:         w.UpdatedAt,
 	}, nil

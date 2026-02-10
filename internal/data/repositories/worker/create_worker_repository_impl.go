@@ -79,6 +79,7 @@ func (r *CreateWorkerRepositoryImpl) CreateWorker(worker *entity.Worker) (*entit
 		Deceased:          worker.Deceased,
 		IsPresident:       worker.IsPresident,
 		Terms:             []byte(termsJSON),
+		IsActive:          worker.IsActive,
 	}
 
 	_, err = r.queries.CreateWorker(ctx, params)
@@ -142,6 +143,7 @@ func dbWorkerToEntity(workerDB db.Worker) *entity.Worker {
 		Deceased:          workerDB.Deceased,
 		IsPresident:       workerDB.IsPresident,
 		Terms:             terms,
+		IsActive:          workerDB.IsActive,
 		CreatedAt:         workerDB.CreatedAt.Time,
 		UpdatedAt:         workerDB.UpdatedAt.Time,
 	}
@@ -195,6 +197,7 @@ func dbWorkerRowToEntity(workerDB db.GetWorkerByIDRow) *entity.Worker {
 		Deceased:          workerDB.Deceased,
 		IsPresident:       workerDB.IsPresident,
 		Terms:             terms,
+		IsActive:          workerDB.IsActive,
 		CreatedAt:         workerDB.CreatedAt.Time,
 		UpdatedAt:         workerDB.UpdatedAt.Time,
 	}

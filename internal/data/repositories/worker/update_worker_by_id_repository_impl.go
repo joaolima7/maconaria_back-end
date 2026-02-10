@@ -75,6 +75,7 @@ func (r *UpdateWorkerByIDRepositoryImpl) UpdateWorkerByID(worker *entity.Worker)
 		Deceased:          worker.Deceased,
 		IsPresident:       worker.IsPresident,
 		Terms:             []byte(termsJSON),
+		IsActive:          worker.IsActive,
 		ID:                worker.ID,
 	}
 

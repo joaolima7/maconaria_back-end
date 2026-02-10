@@ -237,4 +237,5 @@ type Worker struct {
 	ProvectMasonDate  sql.NullTime
 	IsPresident       bool
 	Terms             json.RawMessage
+	IsActive          bool
 }

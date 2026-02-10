@@ -29,6 +29,7 @@ type UpdateWorkerByIDInputDTO struct {
 	Deceased          bool     `json:"deceased"`
 	IsPresident       bool     `json:"is_president"`
 	Terms             []string `json:"terms"`
+	IsActive          bool     `json:"is_active"`
 }
 
 type UpdateWorkerByIDOutputDTO struct {
@@ -48,6 +49,7 @@ type UpdateWorkerByIDOutputDTO struct {
 	Deceased          bool       `json:"deceased"`
 	IsPresident       bool       `json:"is_president"`
 	Terms             []string   `json:"terms"`
+	IsActive          bool       `json:"is_active"`
 	CreatedAt         time.Time  `json:"created_at"`
 	UpdatedAt         time.Time  `json:"updated_at"`
 }
@@ -176,6 +178,7 @@ func (uc *UpdateWorkerByIDUseCase) Execute(input UpdateWorkerByIDInputDTO) (*Upd
 		Deceased:          input.Deceased,
 		IsPresident:       input.IsPresident,
 		Terms:             input.Terms,
+		IsActive:          input.IsActive,
 		UpdatedAt:         time.Now(),
 	}
 
@@ -217,6 +220,7 @@ func (uc *UpdateWorkerByIDUseCase) Execute(input UpdateWorkerByIDInputDTO) (*Upd
 		Deceased:          workerUpdated.Deceased,
 		IsPresident:       workerUpdated.IsPresident,
 		Terms:             workerUpdated.Terms,
+		IsActive:          workerUpdated.IsActive,
 		CreatedAt:         workerUpdated.CreatedAt,
 		UpdatedAt:         workerUpdated.UpdatedAt,
 	}, nil

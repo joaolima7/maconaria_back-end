@@ -24,6 +24,7 @@ type Worker struct {
 	Deceased          bool
 	IsPresident       bool
 	Terms             []string
+	IsActive          bool
 	CreatedAt         time.Time
 	UpdatedAt         time.Time
 }
@@ -45,6 +46,7 @@ func NewWorker(
 	deceased bool,
 	isPresident bool,
 	terms []string,
+	isActive bool,
 ) (*Worker, error) {
 	worker := &Worker{
 		ID:                id,
@@ -63,6 +65,7 @@ func NewWorker(
 		Deceased:          deceased,
 		IsPresident:       isPresident,
 		Terms:             terms,
+		IsActive:          isActive,
 		CreatedAt:         time.Now(),
 		UpdatedAt:         time.Now(),
 	}
