@@ -36,6 +36,7 @@ func (r *CreateAcaciaRepositoryImpl) CreateAcacia(acacia *entity.Acacia) (*entit
 		IsPresident: acacia.IsPresident,
 		Deceased:    acacia.Deceased,
 		ImageUrl:    acacia.ImageURL,
+		IsActive:    acacia.IsActive,
 	}
 
 	_, err = r.queries.CreateAcacia(ctx, params)
@@ -48,7 +49,7 @@ func (r *CreateAcaciaRepositoryImpl) CreateAcacia(acacia *entity.Acacia) (*entit
 		return nil, apperrors.WrapDatabaseError(err, "buscar acácia criada")
 	}
 
-	return dbAcaciaToEntity(acaciaDB)
+	return dbAcaciaByIDRowToEntity(acaciaDB)
 }
 
 func dbAcaciaToEntity(acaciaDB db.Acacia) (*entity.Acacia, error) {
@@ -63,6 +64,45 @@ func dbAcaciaToEntity(acaciaDB db.Acacia) (*entity.Acacia, error) {
 		Terms:       terms,
 		IsPresident: acaciaDB.IsPresident,
 		Deceased:    acaciaDB.Deceased,
+		IsActive:    acaciaDB.IsActive,
+		ImageURL:    acaciaDB.ImageUrl,
+		CreatedAt:   acaciaDB.CreatedAt.Time,
+		UpdatedAt:   acaciaDB.UpdatedAt.Time,
+	}, nil
+}
+
+func dbAcaciaByIDRowToEntity(acaciaDB db.GetAcaciaByIDRow) (*entity.Acacia, error) {
+	terms, err := entity.TermsFromJSON(string(acaciaDB.Terms))
+	if err != nil {
+		return nil, apperrors.NewValidationError("mandatos", "Erro ao processar mandatos!")
+	}
+
+	return &entity.Acacia{
+		ID:          acaciaDB.ID,
+		Name:        acaciaDB.Name,
+		Terms:       terms,
+		IsPresident: acaciaDB.IsPresident,
+		Deceased:    acaciaDB.Deceased,
+		IsActive:    acaciaDB.IsActive,
+		ImageURL:    acaciaDB.ImageUrl,
+		CreatedAt:   acaciaDB.CreatedAt.Time,
+		UpdatedAt:   acaciaDB.UpdatedAt.Time,
+	}, nil
+}
+
+func dbAcaciaAllRowToEntity(acaciaDB db.GetAllAcaciasRow) (*entity.Acacia, error) {
+	terms, err := entity.TermsFromJSON(string(acaciaDB.Terms))
+	if err != nil {
+		return nil, apperrors.NewValidationError("mandatos", "Erro ao processar mandatos!")
+	}
+
+	return &entity.Acacia{
+		ID:          acaciaDB.ID,
+		Name:        acaciaDB.Name,
+		Terms:       terms,
+		IsPresident: acaciaDB.IsPresident,
+		Deceased:    acaciaDB.Deceased,
+		IsActive:    acaciaDB.IsActive,
 		ImageURL:    acaciaDB.ImageUrl,
 		CreatedAt:   acaciaDB.CreatedAt.Time,
 		UpdatedAt:   acaciaDB.UpdatedAt.Time,

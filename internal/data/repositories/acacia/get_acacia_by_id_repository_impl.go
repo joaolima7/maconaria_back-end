@@ -29,5 +29,5 @@ func (r *GetAcaciaByIDRepositoryImpl) GetAcaciaByID(id string) (*entity.Acacia, 
 		return nil, apperrors.WrapDatabaseError(err, "buscar acácia")
 	}
 
-	return dbAcaciaToEntity(acaciaDB)
+	return dbAcaciaByIDRowToEntity(acaciaDB)
 }

@@ -40,6 +40,7 @@ func (r *UpdateAcaciaByIDRepositoryImpl) UpdateAcaciaByID(acacia *entity.Acacia)
 		IsPresident: acacia.IsPresident,
 		Deceased:    acacia.Deceased,
 		ImageUrl:    acacia.ImageURL,
+		IsActive:    acacia.IsActive,
 		ID:          acacia.ID,
 	}
 
@@ -53,5 +54,5 @@ func (r *UpdateAcaciaByIDRepositoryImpl) UpdateAcaciaByID(acacia *entity.Acacia)
 		return nil, apperrors.WrapDatabaseError(err, "buscar acácia atualizada")
 	}
 
-	return dbAcaciaToEntity(acaciaDB)
+	return dbAcaciaByIDRowToEntity(acaciaDB)
 }

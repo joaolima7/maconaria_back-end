@@ -13,6 +13,7 @@ type Acacia struct {
 	Terms       []string
 	IsPresident bool
 	Deceased    bool
+	IsActive    bool
 	ImageURL    string
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
@@ -25,6 +26,7 @@ func NewAcacia(
 	isPresident bool,
 	deceased bool,
 	imageURL string,
+	isActive bool,
 ) (*Acacia, error) {
 	acacia := &Acacia{
 		ID:          id,
@@ -32,6 +34,7 @@ func NewAcacia(
 		Terms:       terms,
 		IsPresident: isPresident,
 		Deceased:    deceased,
+		IsActive:    isActive,
 		ImageURL:    imageURL,
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),

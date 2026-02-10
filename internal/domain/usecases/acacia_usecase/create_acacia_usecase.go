@@ -17,6 +17,7 @@ type CreateAcaciaInputDTO struct {
 	Terms       []string `json:"terms"`
 	IsPresident bool     `json:"is_president"`
 	Deceased    bool     `json:"deceased"`
+	IsActive    bool     `json:"is_active"`
 	ImageData   string   `json:"image_data" validate:"required,base64"`
 }
 
@@ -26,6 +27,7 @@ type CreateAcaciaOutputDTO struct {
 	Terms       []string  `json:"terms"`
 	IsPresident bool      `json:"is_president"`
 	Deceased    bool      `json:"deceased"`
+	IsActive    bool      `json:"is_active"`
 	ImageURL    string    `json:"image_url"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
@@ -75,6 +77,7 @@ func (uc *CreateAcaciaUseCase) Execute(input CreateAcaciaInputDTO) (*CreateAcaci
 		input.IsPresident,
 		input.Deceased,
 		imageURL,
+		input.IsActive,
 	)
 	if err != nil {
 
@@ -95,6 +98,7 @@ func (uc *CreateAcaciaUseCase) Execute(input CreateAcaciaInputDTO) (*CreateAcaci
 		Terms:       acaciaCreated.Terms,
 		IsPresident: acaciaCreated.IsPresident,
 		Deceased:    acaciaCreated.Deceased,
+		IsActive:    acaciaCreated.IsActive,
 		ImageURL:    acaciaCreated.ImageURL,
 		CreatedAt:   acaciaCreated.CreatedAt,
 		UpdatedAt:   acaciaCreated.UpdatedAt,

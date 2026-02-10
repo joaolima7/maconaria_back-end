@@ -26,7 +26,7 @@ func (r *GetAllAcaciasRepositoryImpl) GetAllAcacias() ([]*entity.Acacia, error) 
 
 	acacias := make([]*entity.Acacia, len(acaciasDB))
 	for i, acaciaDB := range acaciasDB {
-		acacia, err := dbAcaciaToEntity(acaciaDB)
+		acacia, err := dbAcaciaAllRowToEntity(acaciaDB)
 		if err != nil {
 			return nil, err
 		}

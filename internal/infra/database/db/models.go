@@ -151,6 +151,7 @@ type Acacia struct {
 	ImageUrl    string
 	CreatedAt   sql.NullTime
 	UpdatedAt   sql.NullTime
+	IsActive    bool
 }
 
 type Library struct {

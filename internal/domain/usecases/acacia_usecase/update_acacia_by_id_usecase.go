@@ -18,6 +18,7 @@ type UpdateAcaciaByIDInputDTO struct {
 	Terms       []string `json:"terms"`
 	IsPresident bool     `json:"is_president"`
 	Deceased    bool     `json:"deceased"`
+	IsActive    bool     `json:"is_active"`
 	ImageData   string   `json:"image_data,omitempty"`
 }
 
@@ -27,6 +28,7 @@ type UpdateAcaciaByIDOutputDTO struct {
 	Terms       []string  `json:"terms"`
 	IsPresident bool      `json:"is_president"`
 	Deceased    bool      `json:"deceased"`
+	IsActive    bool      `json:"is_active"`
 	ImageURL    string    `json:"image_url"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
@@ -87,6 +89,7 @@ func (uc *UpdateAcaciaByIDUseCase) Execute(input UpdateAcaciaByIDInputDTO) (*Upd
 		Terms:       input.Terms,
 		IsPresident: input.IsPresident,
 		Deceased:    input.Deceased,
+		IsActive:    input.IsActive,
 		ImageURL:    imageURL,
 		UpdatedAt:   time.Now(),
 	}
@@ -118,6 +121,7 @@ func (uc *UpdateAcaciaByIDUseCase) Execute(input UpdateAcaciaByIDInputDTO) (*Upd
 		Terms:       acaciaUpdated.Terms,
 		IsPresident: acaciaUpdated.IsPresident,
 		Deceased:    acaciaUpdated.Deceased,
+		IsActive:    acaciaUpdated.IsActive,
 		ImageURL:    acaciaUpdated.ImageURL,
 		CreatedAt:   acaciaUpdated.CreatedAt,
 		UpdatedAt:   acaciaUpdated.UpdatedAt,

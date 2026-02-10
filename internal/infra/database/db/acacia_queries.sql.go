@@ -12,8 +12,8 @@ import (
 )
 
 const createAcacia = `-- name: CreateAcacia :execresult
-INSERT INTO acacias (id, name, terms, is_president, deceased, image_url)
-VALUES (?, ?, ?, ?, ?, ?)
+INSERT INTO acacias (id, name, terms, is_president, deceased, image_url, is_active)
+VALUES (?, ?, ?, ?, ?, ?, ?)
 `
 
 type CreateAcaciaParams struct {
@@ -23,6 +23,7 @@ type CreateAcaciaParams struct {
 	IsPresident bool
 	Deceased    bool
 	ImageUrl    string
+	IsActive    bool
 }
 
 func (q *Queries) CreateAcacia(ctx context.Context, arg CreateAcaciaParams) (sql.Result, error) {
@@ -33,6 +34,7 @@ func (q *Queries) CreateAcacia(ctx context.Context, arg CreateAcaciaParams) (sql
 		arg.IsPresident,
 		arg.Deceased,
 		arg.ImageUrl,
+		arg.IsActive,
 	)
 }
 
@@ -46,14 +48,26 @@ func (q *Queries) DeleteAcacia(ctx context.Context, id string) error {
 }
 
 const getAcaciaByID = `-- name: GetAcaciaByID :one
-SELECT id, name, terms, is_president, deceased, image_url, created_at, updated_at
+SELECT id, name, terms, is_president, deceased, image_url, is_active, created_at, updated_at
 FROM acacias
 WHERE id = ?
 `
 
-func (q *Queries) GetAcaciaByID(ctx context.Context, id string) (Acacia, error) {
+type GetAcaciaByIDRow struct {
+	ID          string
+	Name        string
+	Terms       json.RawMessage
+	IsPresident bool
+	Deceased    bool
+	ImageUrl    string
+	IsActive    bool
+	CreatedAt   sql.NullTime
+	UpdatedAt   sql.NullTime
+}
+
+func (q *Queries) GetAcaciaByID(ctx context.Context, id string) (GetAcaciaByIDRow, error) {
 	row := q.db.QueryRowContext(ctx, getAcaciaByID, id)
-	var i Acacia
+	var i GetAcaciaByIDRow
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
@@ -61,6 +75,7 @@ func (q *Queries) GetAcaciaByID(ctx context.Context, id string) (Acacia, error) 
 		&i.IsPresident,
 		&i.Deceased,
 		&i.ImageUrl,
+		&i.IsActive,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -68,14 +83,26 @@ func (q *Queries) GetAcaciaByID(ctx context.Context, id string) (Acacia, error) 
 }
 
 const getAcaciaByName = `-- name: GetAcaciaByName :one
-SELECT id, name, terms, is_president, deceased, image_url, created_at, updated_at
+SELECT id, name, terms, is_president, deceased, image_url, is_active, created_at, updated_at
 FROM acacias
 WHERE name = ?
 `
 
-func (q *Queries) GetAcaciaByName(ctx context.Context, name string) (Acacia, error) {
+type GetAcaciaByNameRow struct {
+	ID          string
+	Name        string
+	Terms       json.RawMessage
+	IsPresident bool
+	Deceased    bool
+	ImageUrl    string
+	IsActive    bool
+	CreatedAt   sql.NullTime
+	UpdatedAt   sql.NullTime
+}
+
+func (q *Queries) GetAcaciaByName(ctx context.Context, name string) (GetAcaciaByNameRow, error) {
 	row := q.db.QueryRowContext(ctx, getAcaciaByName, name)
-	var i Acacia
+	var i GetAcaciaByNameRow
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
@@ -83,6 +110,7 @@ func (q *Queries) GetAcaciaByName(ctx context.Context, name string) (Acacia, err
 		&i.IsPresident,
 		&i.Deceased,
 		&i.ImageUrl,
+		&i.IsActive,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -90,20 +118,32 @@ func (q *Queries) GetAcaciaByName(ctx context.Context, name string) (Acacia, err
 }
 
 const getAllAcacias = `-- name: GetAllAcacias :many
-SELECT id, name, terms, is_president, deceased, image_url, created_at, updated_at
+SELECT id, name, terms, is_president, deceased, image_url, is_active, created_at, updated_at
 FROM acacias
 ORDER BY name ASC
 `
 
-func (q *Queries) GetAllAcacias(ctx context.Context) ([]Acacia, error) {
+type GetAllAcaciasRow struct {
+	ID          string
+	Name        string
+	Terms       json.RawMessage
+	IsPresident bool
+	Deceased    bool
+	ImageUrl    string
+	IsActive    bool
+	CreatedAt   sql.NullTime
+	UpdatedAt   sql.NullTime
+}
+
+func (q *Queries) GetAllAcacias(ctx context.Context) ([]GetAllAcaciasRow, error) {
 	rows, err := q.db.QueryContext(ctx, getAllAcacias)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Acacia
+	var items []GetAllAcaciasRow
 	for rows.Next() {
-		var i Acacia
+		var i GetAllAcaciasRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Name,
@@ -111,6 +151,7 @@ func (q *Queries) GetAllAcacias(ctx context.Context) ([]Acacia, error) {
 			&i.IsPresident,
 			&i.Deceased,
 			&i.ImageUrl,
+			&i.IsActive,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {
@@ -129,7 +170,7 @@ func (q *Queries) GetAllAcacias(ctx context.Context) ([]Acacia, error) {
 
 const updateAcacia = `-- name: UpdateAcacia :execresult
 UPDATE acacias
-SET name = ?, terms = ?, is_president = ?, deceased = ?, image_url = ?, updated_at = CURRENT_TIMESTAMP
+SET name = ?, terms = ?, is_president = ?, deceased = ?, image_url = ?, is_active = ?, updated_at = CURRENT_TIMESTAMP
 WHERE id = ?
 `
 
@@ -139,6 +180,7 @@ type UpdateAcaciaParams struct {
 	IsPresident bool
 	Deceased    bool
 	ImageUrl    string
+	IsActive    bool
 	ID          string
 }
 
@@ -149,6 +191,7 @@ func (q *Queries) UpdateAcacia(ctx context.Context, arg UpdateAcaciaParams) (sql
 		arg.IsPresident,
 		arg.Deceased,
 		arg.ImageUrl,
+		arg.IsActive,
 		arg.ID,
 	)
 }

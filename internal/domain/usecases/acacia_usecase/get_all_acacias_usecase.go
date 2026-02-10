@@ -12,6 +12,7 @@ type GetAllAcaciasOutputDTO struct {
 	Terms       []string  `json:"terms"`
 	IsPresident bool      `json:"is_president"`
 	Deceased    bool      `json:"deceased"`
+	IsActive    bool      `json:"is_active"`
 	ImageURL    string    `json:"image_url"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
@@ -41,6 +42,7 @@ func (uc *GetAllAcaciasUseCase) Execute() ([]*GetAllAcaciasOutputDTO, error) {
 			Terms:       a.Terms,
 			IsPresident: a.IsPresident,
 			Deceased:    a.Deceased,
+			IsActive:    a.IsActive,
 			ImageURL:    a.ImageURL,
 			CreatedAt:   a.CreatedAt,
 			UpdatedAt:   a.UpdatedAt,
