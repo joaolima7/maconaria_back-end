@@ -251,6 +251,7 @@ func dbWorkerAllRowToEntity(workerDB db.GetAllWorkersRow) *entity.Worker {
 		Deceased:          workerDB.Deceased,
 		IsPresident:       workerDB.IsPresident,
 		Terms:             terms,
+		IsActive:          workerDB.IsActive,
 		CreatedAt:         workerDB.CreatedAt.Time,
 		UpdatedAt:         workerDB.UpdatedAt.Time,
 	}
